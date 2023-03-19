@@ -1,0 +1,40 @@
+:root{
+  --shade1:#111;
+  --shade2:#222;
+  --shade3:#333;
+  --shade4:#444;
+  --shade5:#555;
+  --color1:#000;
+  --color2:#f00;
+  --color3:#ff3838;
+  --color4:rgb(200,100,80);
+  /* --font1:'Lexend Mega', sans-serif;
+  --font2:'Spinnaker', sans-serif; */
+  --font-size-B:30px;
+  --font-size-M:25px;
+  --font-size-S:15px;
+}
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: var(--font2);
+  /* scrollbar-color: var(--color2) var(--shade1); */
+  scrollbar-width:thin;
+  scrollbar-gutter: none;
+}
+/* ::selection{
+  background-color: var(--color2);
+} */
+*:is(p ,div ,span ,a ,button ,input ,select ,textarea){
+  color: #fff;
+}
+html{
+  overflow-x: hidden;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--shade3);
+  overflow-x: hidden;
+}
