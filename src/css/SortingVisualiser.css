@@ -1,0 +1,42 @@
+#sortingOptionsBar{
+    background-color: #00000ada;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+.sortingOption{
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.sortingOption *{
+  font-size: var(--fontSize-S);
+}
+#silderOption{
+  flex-direction: column;
+}
+#alogorithmOption>p{
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+#silderOption>*{
+  width: 100%;
+}
+#sortingSection{
+  height: 500px;
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  overflow: hidden;
+}
+#sortingSection>.bar{
+  flex-grow: 1;
+  background-color: var(--colorScale3);
+}
+/* #sortingSection>.bar>p{
+  position: absolute;
+  top: 100%;
+  font-size: var(--fontSize-S);
+  transform: rotate(90deg) translate(100%);
+  background-color: transparent;
+} */
