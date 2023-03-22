@@ -23,6 +23,7 @@ const SortingVisualiser = () => {
     }
     // bubble sort
     const bubbleSort=(array)=>{
+    if(array.length<2) return array
     let result=array
     for(let i=0;i<result.length;i++){
         for(let j=0;j<result.length-i;j++){
@@ -35,20 +36,35 @@ const SortingVisualiser = () => {
     }
     return result
     }
-    const heapSort=(array)=>{
-        const result=array.sort((a,b)=>a-b)
-        return result
-    }
+    // quick sort
+    function quickSort(array) {
+        if(array.length<2) return array
+        const pivot=array[0]
+        const unsortedLeftSide=[]
+        const unsortedRightSide=[]
+        for(let i=1 ;i<array.length ;i++){
+            if(array[i]<pivot){
+                unsortedLeftSide.push(array[i])
+            }else{
+                unsortedRightSide.push(array[i])
+            }
+        }
+        const sortedLeftSide=quickSort(unsortedLeftSide)
+        const sortedRightSide=quickSort(unsortedRightSide)
+        return [...sortedLeftSide ,pivot ,...sortedRightSide]
+      }
     // end
-    const [width ,setWidth]=useState(50)
+    const [width ,setWidth]=useState(4)
     const [mainArray ,setMainArray]=useState([])
     const [max ,setMax]=useState(100)
     const [algo ,setAlgo]=useState(1)
     const graphRef=useRef()
+    const maxNumber=400 //400 for best proformence
+    const minNumber=4   //4 for best proformence
     const newArray=()=>{
         const arr=[]
         for(let i=0;i<width;i++){
-            arr.push(Math.floor(Math.random() * (400 - 4 + 1) + 4))
+            arr.push(Math.floor(Math.random() * (maxNumber - minNumber + 1) + minNumber))
         }
         return arr
     }
@@ -84,7 +100,7 @@ const SortingVisualiser = () => {
                 <button onClick={
                 ()=>setMainArray(
                     algo===1 ? mergeSort(mainArray) : 
-                    algo===2 ? {/*quick */}:
+                    algo===2 ? quickSort(mainArray):
                     algo===3 ? {/*heap */}:
                     bubbleSort(mainArray)
                 )
