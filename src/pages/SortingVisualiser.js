@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useState } from 'react'
 import '../css/SortingVisualiser.css'
 const SortingVisualiser = () => {
+    const animations=[]
+    const [bars ,setBars]=useState([])
     // sorting algos
     // merge sort
     const merge=(firstHalf ,secondHalf)=>{
         const result=[]
         while(firstHalf.length && secondHalf.length){
             if(firstHalf[0]<secondHalf[0]){
-                result.push(firstHalf.shift())
+                result.push(firstHalf.shift()) 
             }else{
                 result.push(secondHalf.shift())
             }
@@ -21,6 +23,86 @@ const SortingVisualiser = () => {
         const firstHalf=array.splice(0 ,midPoint)
         return merge(mergeSort(firstHalf) ,mergeSort(array))
     }
+    // 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const testMerge=(array ,firstParams ,secondParams)=>{
+        if(!firstParams || !secondParams) return
+        console.log(`comparing ${array.slice(firstParams.s ,firstParams.e)} and ${array.slice(secondParams.s ,secondParams.e)}`)
+}
+    const testMergeSort=(array ,s=0 ,e=array.length)=>{
+        const currentArray=array.slice(s ,e)
+        console.log(currentArray)
+        if(currentArray.length<2){
+            return {s:s,e:e}
+        }
+        const midPoint=Math.floor(currentArray.length/2)
+        return testMerge(array ,testMergeSort(array ,s ,s+midPoint),testMergeSort(array ,s+midPoint ,e))
+    }
+
+
+
+
+
+
+
+
+
+
+    const animationFunc=()=>{
+        let factor=100
+        let i=100
+        animations.map(frame=>{
+            if(frame.type==='compare'){
+                setTimeout(()=>{
+                    bars[frame.A].classList.add('compared')
+                    bars[frame.B].classList.add('compared')
+                },i)
+                setTimeout(()=>{
+                    bars[frame.A].classList.remove('compared')
+                    bars[frame.B].classList.remove('compared')
+                },i+factor)
+            }else if(frame.type==='swap'){
+                let result=bars
+                const tempStorage=result[frame.A]
+                result[frame.A]=result[frame.B]
+                result[frame.B]=tempStorage
+                setTimeout(()=>{
+                    setBars(result)
+                },i)
+            }
+            i+=factor
+        })
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
     // bubble sort
     const bubbleSort=(array)=>{
     if(array.length<2) return array
@@ -28,9 +110,7 @@ const SortingVisualiser = () => {
     for(let i=0;i<result.length;i++){
         for(let j=0;j<result.length-i;j++){
             if(result[j]>result[j+1]){
-                const big=result[j]
-                result[j]=result[j+1]
-                result[j+1]=big
+                [result[j] ,result[j+1]]=[result[j+1],result[j]]
             }
         }
     }
@@ -52,8 +132,12 @@ const SortingVisualiser = () => {
         const sortedLeftSide=quickSort(unsortedLeftSide)
         const sortedRightSide=quickSort(unsortedRightSide)
         return [...sortedLeftSide ,pivot ,...sortedRightSide]
-      }
+    } 
     // end
+    const [algoTimer ,setAlgoTimer]=useState({
+        start:null,
+        end:null
+    })
     const [width ,setWidth]=useState(4)
     const [mainArray ,setMainArray]=useState([])
     const [max ,setMax]=useState(100)
@@ -61,6 +145,12 @@ const SortingVisualiser = () => {
     const graphRef=useRef()
     const maxNumber=400 //400 for best proformence
     const minNumber=4   //4 for best proformence
+    const animator=()=>{
+        // setInterval(()=>{
+            //     setMainArray(frame)
+        // },100)
+        // )
+    }
     const newArray=()=>{
         const arr=[]
         for(let i=0;i<width;i++){
@@ -71,6 +161,12 @@ const SortingVisualiser = () => {
     useEffect(()=>{
         setMainArray(newArray())
     },[width])
+    useEffect(()=>{
+        setBars(document.querySelectorAll('.bar'))
+        if(algoTimer.end===null && algoTimer.start!==null){
+            setAlgoTimer({...algoTimer, end:Date.now()})
+        }
+    },[mainArray])
     useEffect(()=>{
         setMax(Math.floor((graphRef.current.clientWidth-60) / 4))
     },[])
@@ -83,11 +179,12 @@ const SortingVisualiser = () => {
             <div className="sortingOption" id="silderOption">
                 <p>alter array size and sorting speed</p>
                 <input 
+                id='widthRange'
                 type='range'
-                min='4'
+                min={minNumber}
                 max={max}
                 value={width}
-                onChange={e=>setWidth(e.target.value)}
+                onChange={e=>setWidth(Number(e.target.value))}
                 />
             </div>
             <div className="sortingOption" id="alogorithmOption">
@@ -97,17 +194,21 @@ const SortingVisualiser = () => {
                 <p style={{borderBottomColor:algo===4? 'var(--colorScale2)' : ''}} onClick={()=>setAlgo(4)}>Bubble</p>
             </div>
             <div className="sortingOption" id="sortOption">
-                <button onClick={
-                ()=>setMainArray(
+                <button onClick={()=>{
+                    setAlgoTimer({start:Date.now() ,end:null})
+                    setMainArray(
                     algo===1 ? mergeSort(mainArray) : 
                     algo===2 ? quickSort(mainArray):
                     algo===3 ? {/*heap */}:
                     bubbleSort(mainArray)
                 )
-                }>sort !</button>
+                }}>sort !</button>
+                <button onClick={()=>{testMergeSort(mainArray)}}>test merge</button>
             </div>
         </section>
         <section id="sortingSection" ref={graphRef}>
+            {algoTimer.end && <p id='algoTimer'>time to sort: {algoTimer.end-algoTimer.start>=1 ? algoTimer.end-algoTimer.start : 'less then 1'}ms</p>}
+            <p id='numOfBars'>{width===1 ? `${width} bar` : `${width} bars`}</p>
             {mainArray.length ? mainArray.map((value ,indx)=>{
                 return(
                     <div className='bar' key={indx} title={value} style={{height:`${value}px`}}></div>

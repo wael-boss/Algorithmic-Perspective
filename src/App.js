@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import Footer from "./components/Footer";
 import Header from "./components/Header";
 import SortingVisualiser from "./pages/SortingVisualiser";
 
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<SortingVisualiser/>}/>
       </Routes>
+      <Footer/>
     </div>
   );
 }

@@ -3,7 +3,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    overflow: hidden;
+    position: relative;
   }
+#sortingOptionsBar::before{
+  content: '';
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
+  background-image: linear-gradient(45deg, #3333ff 25%, #4d4dff 25%, #4d4dff 50%, #3333ff 50%, #3333ff 75%, #4d4dff 75%, #4d4dff 100%);
+  background-size: 56.57px 56.57px;
+  z-index: -1;
+}
 .sortingOption{
   display: flex;
   align-items: center;
@@ -22,21 +35,56 @@
 #silderOption>*{
   width: 100%;
 }
+#widthRange{
+  appearance: none;
+  background-image: linear-gradient(90deg ,var(--colorScale5) ,var(--colorScale1));
+  height: 4px;
+  border-radius: var(--radius-B);
+}
+#widthRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  background: var(--colorScale1);
+  border: 1px solid var(--grayScale1);
+  cursor: pointer;
+}
+#widthRange::-moz-range-thumb{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  background: var(--colorScale1);
+  border: 1px solid var(--grayScale1);
+  cursor: pointer;
+}
 #sortingSection{
   height: 500px;
   display: flex;
   align-items: end;
   gap: 2px;
   overflow: hidden;
+  position: relative;
 }
 #sortingSection>.bar{
   flex-grow: 1;
   background-color: var(--colorScale3);
 }
-/* #sortingSection>.bar>p{
+.compared{
+  background-color: red;
+}
+#algoTimer{
   position: absolute;
-  top: 100%;
-  font-size: var(--fontSize-S);
-  transform: rotate(90deg) translate(100%);
-  background-color: transparent;
-} */
+  top: 0px;
+  left: 0px;
+  font:700 var(--fontSize-M) var(--font1)
+}
+#numOfBars{
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  font:700 var(--fontSize-M) var(--font1)
+}

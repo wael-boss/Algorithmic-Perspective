@@ -56,17 +56,6 @@ body {
   background-color: var(--grayScale1);
   overflow-x: hidden;
 }
-body::before{
-  content: '';
-  position: fixed;
-  top: 0px;
-  bottom: 0px;
-  right: 0px;
-  left: 0px;
-  background-image: linear-gradient(45deg, #3333ff 25%, #4d4dff 25%, #4d4dff 50%, #3333ff 50%, #3333ff 75%, #4d4dff 75%, #4d4dff 100%);
-  background-size: 56.57px 56.57px;
-  z-index: -1;
-}
 /* default styles */
 button{
   cursor: pointer;
@@ -136,4 +125,12 @@ section:nth-child(even){
 }
 section:nth-child(odd){
   background-color: var(--grayScale1);
+}
+footer{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+  font: 600 var(--fontSize-B) var(--font1);
+  background-image: linear-gradient(180deg ,var(--colorScale2) 0% 1% ,var(--grayScale1) 3% 100%);
 }
