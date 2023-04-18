@@ -73,9 +73,6 @@
   flex-grow: 1;
   background-color: var(--colorScale3);
 }
-.compared{
-  background-color: red;
-}
 #algoTimer{
   position: absolute;
   top: 0px;
