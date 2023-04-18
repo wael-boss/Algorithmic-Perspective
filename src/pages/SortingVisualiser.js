@@ -63,17 +63,36 @@ const SortingVisualiser = () => {
         return merge(array ,animations ,mergeSort(array ,animations ,s ,s+midPoint),mergeSort(array ,animations ,s+midPoint ,e)) 
     }
     // bubble sort
-    const bubbleSort=(array)=>{
-    if(array.length<2) return array
-    let result=array
-    for(let i=0;i<result.length;i++){
-        for(let j=0;j<result.length-i;j++){
-            if(result[j]>result[j+1]){
-                [result[j] ,result[j+1]]=[result[j+1],result[j]]
-            }
-        }
+    const swap=(array ,a ,b)=>{
+        const temp=array[a]
+        array[a]=array[b]
+        array[b]=temp
     }
-    return result
+    const bubbleSort=(array)=>{
+        const animations=[]
+        let totalRuns=0
+        let runPerBar=0
+        // loop through the array length
+        while(totalRuns<array.length){
+            // for every run loop through the arrays length ignoring previous runs
+            while(runPerBar+totalRuns<array.length-1){
+                // store a compare frame
+                animations.push({type:'compare',A:runPerBar,B:runPerBar+1})
+                // check if the value is bigger the the next one and swap if true
+                if(array[runPerBar]>array[runPerBar+1]){
+                    // store a swap frame
+                    animations.push({type:'swap',A:{index:runPerBar,value:array[runPerBar]},B:{index:runPerBar+1,value:array[runPerBar+1]}})
+                    // run a swap function
+                    swap(array ,runPerBar ,runPerBar+1 )
+                }
+                runPerBar++
+            }
+            // get the loop ready for the next run
+            runPerBar=0
+            totalRuns++
+        }
+        // return an array of frames
+        return animations
     }
     // quick sort
     function quickSort(array) {
@@ -107,7 +126,7 @@ const SortingVisualiser = () => {
     const minNumber=4   //4 for best proformence
     const animationFunc=(arr)=>{
         // the number of mileseconds in between every frame
-        let factor=width<10 ? 500 : width<20 ? 100 : width<50 ? 50 : 10
+        let factor=width<15 ? 500 : width<20 ? 100 : width<100 ? 50 : width<150 ? 10 : 2
         // history of the last time out to create a consitent flow 
         let i=factor
         // get animatins from the chosen algorithm
@@ -125,16 +144,28 @@ const SortingVisualiser = () => {
                     setTimeout(()=>{
                         bars[frame.A].style.backgroundColor=''
                         bars[frame.B].style.backgroundColor=''
-                    },factor)
+                    },factor-factor/10)
                 },i)
             // a frame swaping two values
-            }else if(frame.type==='swap'){
+        }else if(frame.type==='swap'){
+                setTimeout(()=>{
+                    bars[frame.A.index].style.backgroundColor='#00ff00'
+                    bars[frame.A.index].style.height=`${frame.B.value}px`
+                    bars[frame.A.index].title=frame.B.value
+                    bars[frame.B.index].style.backgroundColor='#00ff00'
+                    bars[frame.B.index].style.height=`${frame.A.value}px`
+                    bars[frame.B.index].title=frame.A.value
+                    setTimeout(()=>{
+                        bars[frame.A.index].style.backgroundColor=''
+                        bars[frame.B.index].style.backgroundColor=''
+                    },factor-factor/10)
+                },i)
             // a frame changing the height of a value
             }else if(frame.type==='change'){
                 setTimeout(()=>{
                     bars[frame.index].title=frame.value
                     bars[frame.index].style.height=`${frame.value}px`
-                    bars[frame.index].style.backgroundColor=`green`
+                    bars[frame.index].style.backgroundColor=`#00ff00`
                     setTimeout(()=>{
                         bars[frame.index].style.backgroundColor=`var(--colorScale3)`
                     },factor)
@@ -167,7 +198,7 @@ const SortingVisualiser = () => {
         <section id="sortingOptionsBar">
             <div className="sortingOption" id="generateArrayOption">
                 <button
-                style={{backgroundColor:isAnimating ? 'var(--colorScale5)' : ''}}
+                style={{backgroundColor:isAnimating ? '#a00000' : ''}}
                 onClick={()=>{
                     if(isAnimating) return
                     setMainArray(newArray())
@@ -176,7 +207,7 @@ const SortingVisualiser = () => {
             <div className="sortingOption" id="silderOption">
                 <p>alter array size and sorting speed</p>
                 <input 
-                style={{background:isAnimating ? 'var(--colorScale5)' : ''}}
+                style={{background:isAnimating ? '#a00000' : ''}}
                 id='widthRange'
                 type='range'
                 min={minNumber}
@@ -196,10 +227,10 @@ const SortingVisualiser = () => {
             </div>
             <div className="sortingOption" id="sortOption">
                 <button
-                style={{backgroundColor:isAnimating ? 'var(--colorScale5)' : ''}}
+                style={{backgroundColor:isAnimating ? '#a00000' : ''}}
                 onClick={()=>{
                     if(isAnimating) return
-                    // setIsAnimating(true) sorts it before the animation
+                    // setIsAnimating(true) sorts the array before the animations
                     animationFunc(mainArray)
                     }}>sort !</button>
             </div>
