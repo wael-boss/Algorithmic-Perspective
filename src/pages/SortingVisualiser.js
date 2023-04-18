@@ -43,15 +43,41 @@ const SortingVisualiser = () => {
 
 
     const testMerge=(array ,firstParams ,secondParams)=>{
-        if(!firstParams || !secondParams) return
-        console.log(`comparing ${array.slice(firstParams.s ,firstParams.e)} and ${array.slice(secondParams.s ,secondParams.e)}`)
+        let leftIndicator=0
+        let rightIndicator=firstParams.e-firstParams.s
+        let arrayPosition=firstParams.s
+        let tempArr=array.slice(firstParams.s ,secondParams.e)
+        while(leftIndicator+firstParams.s<firstParams.e && rightIndicator+firstParams.s<secondParams.e){
+            console.log(leftIndicator ,rightIndicator)
+            console.log(`comparing ${tempArr[leftIndicator]} and ${tempArr[rightIndicator]}`)
+            if(tempArr[leftIndicator]<tempArr[rightIndicator]){
+                console.log(`was ${array[arrayPosition]} became ${tempArr[leftIndicator]}`)
+                array[arrayPosition]=tempArr[leftIndicator]
+                leftIndicator++
+            }else{
+                console.log(`was ${array[arrayPosition]} became ${tempArr[rightIndicator]}`)
+                array[arrayPosition]=tempArr[rightIndicator]
+                rightIndicator++
+            }
+            arrayPosition++
+        }
+        while(leftIndicator+firstParams.s<firstParams.e){
+            array[arrayPosition]=tempArr[leftIndicator]
+            leftIndicator++
+            arrayPosition++
+        }
+        while(rightIndicator+firstParams.s<secondParams.e){
+            array[arrayPosition]=tempArr[rightIndicator]
+            rightIndicator++
+            arrayPosition++
+        }
+        console.log(array)
+        return {s:firstParams.s,e:secondParams.e}
 }
     const testMergeSort=(array ,s=0 ,e=array.length)=>{
         const currentArray=array.slice(s ,e)
-        console.log(currentArray)
-        if(currentArray.length<2){
-            return {s:s,e:e}
-        }
+        // console.log(currentArray)
+        if(currentArray.length<2) return {s:s,e:e}
         const midPoint=Math.floor(currentArray.length/2)
         return testMerge(array ,testMergeSort(array ,s ,s+midPoint),testMergeSort(array ,s+midPoint ,e))
     }
@@ -208,7 +234,7 @@ const SortingVisualiser = () => {
         </section>
         <section id="sortingSection" ref={graphRef}>
             {algoTimer.end && <p id='algoTimer'>time to sort: {algoTimer.end-algoTimer.start>=1 ? algoTimer.end-algoTimer.start : 'less then 1'}ms</p>}
-            <p id='numOfBars'>{width===1 ? `${width} bar` : `${width} bars`}</p>
+            <p onClick={()=>{setWidth(prev=>{return prev+1})}} id='numOfBars'>{width===1 ? `${width} bar` : `${width} bars`}</p>
             {mainArray.length ? mainArray.map((value ,indx)=>{
                 return(
                     <div className='bar' key={indx} title={value} style={{height:`${value}px`}}></div>
