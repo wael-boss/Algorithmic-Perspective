@@ -95,22 +95,44 @@ const SortingVisualiser = () => {
         return animations
     }
     // quick sort
-    function quickSort(array) {
-        if(array.length<2) return array
-        const pivot=array[0]
-        const unsortedLeftSide=[]
-        const unsortedRightSide=[]
-        for(let i=1 ;i<array.length ;i++){
-            if(array[i]<pivot){
-                unsortedLeftSide.push(array[i])
-            }else{
-                unsortedRightSide.push(array[i])
+    const quickSort=(array ,animations=[] ,s=0 ,e=array.length)=>{
+        // end the function when the array width is < 2
+        if(e-1===s) return
+        const pivotIndx=e-1
+        const pivotVal=array[pivotIndx]
+        let currIndex=s
+        let swapIndx=s-1
+        // loop through the array length incrementing the var currIndex each run
+        while(currIndex<array.length){
+            // is true when the value is smaller than the pivot
+            if(array[currIndex]<=pivotVal){
+                swapIndx++
+                // save a compare frame
+                animations.push({type:'compare',A:currIndex,B:swapIndx})
+                // is true when the value is bigger than the pivot
+                if(array[swapIndx]>array[currIndex]){
+                    // save a swap frame
+                    animations.push({type:'swap',A:{index:currIndex ,value:array[currIndex]},B:{index:swapIndx ,value:array[swapIndx]}})
+                    swap(array ,swapIndx ,currIndex)
+                }
             }
+            currIndex++
         }
-        const sortedLeftSide=quickSort(unsortedLeftSide)
-        const sortedRightSide=quickSort(unsortedRightSide)
-        return [...sortedLeftSide ,pivot ,...sortedRightSide]
-    } 
+        // if the swapIndx exeeds the end of the array it means its the last index
+        if(swapIndx>=e) swapIndx=e-1
+        // recursively feed the function the unsorted left and right side
+        // check if the array is empty or not
+        if(swapIndx!==s){
+            // unsorted left (smaller nums)
+            quickSort(array ,animations ,s,swapIndx)
+        }
+        // check if the array is empty or not
+        if(e!==swapIndx){
+            // unsorted right (bigger nums)
+            quickSort(array ,animations ,swapIndx,e)
+        }
+        return animations
+    }
     // end
     const [algoTimer ,setAlgoTimer]=useState({
         start:null,
@@ -126,7 +148,7 @@ const SortingVisualiser = () => {
     const minNumber=4   //4 for best proformence
     const animationFunc=(arr)=>{
         // the number of mileseconds in between every frame
-        let factor=width<15 ? 500 : width<20 ? 100 : width<100 ? 50 : width<150 ? 10 : 2
+        let factor=width<15 ? 500 : width<20 ? 100 : width<100 ? 50 : width<150 ? 10 : 5
         // history of the last time out to create a consitent flow 
         let i=factor
         // get animatins from the chosen algorithm
