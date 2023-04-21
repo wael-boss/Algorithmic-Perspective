@@ -207,13 +207,30 @@ const SortingVisualiser = () => {
         })
         return [array ,...animations]
     }
-
+    // insertion sort
+    const insertionSort=(array)=>{
+        const animations=[]
+        for(let i=0;i<array.length;i++){
+            animations.push({ type: 'compare', A: i, B: i+1 })
+            for(let focusNum=i+1;array[focusNum]<array[focusNum-1];focusNum--){
+                animations.push({ type: 'swap', A: { index: focusNum, value: array[focusNum] }, B: { index: focusNum-1, value: array[focusNum-1] } })
+                swap(array ,focusNum ,focusNum-1)
+                animations.push({ type: 'compare', A: focusNum-1, B: focusNum-2 })
+            }
+        }
+        setAlgoTimer(prev=>{
+            return {
+            ...prev,
+            end:Date.now()}
+        })
+        return [array ,...animations]
+    }
     // end
     const [frequency, setFrequency] = useState(1)
     const { start, stop, playing } = useFrequency({
         hz: frequency,
         oscillator: "swatooth"
-      })
+    })
     const [algoTimer, setAlgoTimer] = useState({
         start: null,
         end: null
@@ -239,7 +256,7 @@ const SortingVisualiser = () => {
             end:null
         })
         // get animatins from the chosen algorithm
-        const animations = algo === 1 ? mergeSort(arr) : algo === 2 ? quickSort(arr) : algo === 3 ? heapSort(arr) : bubbleSort(arr)
+        const animations = algo === 1 ? mergeSort(arr) : algo === 2 ? quickSort(arr) : algo === 3 ? heapSort(arr) : algo === 4 ? bubbleSort(arr) : insertionSort(arr)
         const sortedArr=animations.splice(0 ,1)[0]
         // get an array that only contains comparison frames
         const comparisons=animations.filter(frame=>frame.type==='compare')
@@ -386,6 +403,7 @@ const SortingVisualiser = () => {
                     <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>Quick</p>
                     <p style={{ borderBottomColor: algo === 3 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(3)}>Heap</p>
                     <p style={{ borderBottomColor: algo === 4 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(4)}>Bubble</p>
+                    <p style={{ borderBottomColor: algo === 5 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(5)}>insertion</p>
                 </div>
                 <div className="sortingOption" id="sortOption">
                     <button
@@ -399,7 +417,6 @@ const SortingVisualiser = () => {
                             const array=[...mainArray]
                             animationFunc(array)
                         }}>sort !</button>
-                        {/* kill animation btn */}
                 </div>
             </section>
             <section id="sortingSection" ref={graphRef}>

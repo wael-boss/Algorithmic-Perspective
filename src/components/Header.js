@@ -3,17 +3,12 @@ import { Link, NavLink } from "react-router-dom"
 const Header = () => {
   return (
     <header>
-      <div id="headerAncors">
         <div id="logoContainer">
-          <Link to='/'>LOGO</Link>
+          <h1>logo</h1>
         </div>
-        <nav>
+        <nav id="headerAncors">
           <NavLink to='/'>Sorting visualiser</NavLink>
         </nav>
-      </div>
-      <div>
-        <button>Sign up</button>
-      </div>
     </header>
   )
 }
