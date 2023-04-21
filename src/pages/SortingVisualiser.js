@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect , useRef } from 'react'
 import { useState } from 'react'
 import { useFrequency } from 'react-frequency'
 import '../css/SortingVisualiser.css'
@@ -211,7 +211,8 @@ const SortingVisualiser = () => {
     // end
     const [frequency, setFrequency] = useState(1)
     const { start, stop, playing } = useFrequency({
-        hz: frequency
+        hz: frequency,
+        oscillator: "swatooth"
       })
     const [algoTimer, setAlgoTimer] = useState({
         start: null,
@@ -222,6 +223,7 @@ const SortingVisualiser = () => {
     const [max, setMax] = useState(100)
     const [algo, setAlgo] = useState(1)
     const [isAnimating, setIsAnimating] = useState(false)
+    const [comparisons, setComparisons] = useState(null)
     const graphRef = useRef()
     const maxNumber = 400 //400 for best proformence
     const minNumber = 4   //4 for best proformence
@@ -239,6 +241,9 @@ const SortingVisualiser = () => {
         // get animatins from the chosen algorithm
         const animations = algo === 1 ? mergeSort(arr) : algo === 2 ? quickSort(arr) : algo === 3 ? heapSort(arr) : bubbleSort(arr)
         const sortedArr=animations.splice(0 ,1)[0]
+        // get an array that only contains comparison frames
+        const comparisons=animations.filter(frame=>frame.type==='compare')
+        setComparisons(comparisons.length)
         // check if the starting array was already sorted
         if(JSON.stringify(mainArray)===JSON.stringify(sortedArr)){
             // a timeout to restore default values at the end of the animation
@@ -250,7 +255,7 @@ const SortingVisualiser = () => {
             sortedArr.map((val,index)=>{
                 if(!playing) start()        
                 setTimeout(()=>{
-                    setFrequency(val+100)
+                    setFrequency(val+150)
                     bars[index].style.backgroundColor='#00ff00'
                     setTimeout(()=>{
                         bars[index].style.backgroundColor='var(--colorScale3)'
@@ -271,12 +276,11 @@ const SortingVisualiser = () => {
             // a frame comparing two values and changing their color to red
             if (frame.type === 'compare') {
                 setTimeout(() => {
-                    // create a sound for the greater value
-                    if(Number(bars[frame.A].title)>Number(bars[frame.B].title)){
-                        setFrequency(Number(bars[frame.A].title))
-                    }else{
-                        setFrequency(Number(bars[frame.B].title))
-                    }
+                    // create a sound for both values
+                    setFrequency(Number(bars[frame.B].title)+150)
+                    setTimeout(()=>{
+                        setFrequency(Number(bars[frame.A].title)+150)
+                    },factor/2)
                     // make compared values red
                     bars[frame.A].style.backgroundColor = 'red'
                     bars[frame.B].style.backgroundColor = 'red'
@@ -289,12 +293,11 @@ const SortingVisualiser = () => {
                 // a frame swaping two values
             } else if (frame.type === 'swap') {
                 setTimeout(() => {
-                    // create a sound for the greater value
-                    if(frame.A.value>frame.B.value){
-                        setFrequency(frame.A.value+100)
-                    }else{
-                        setFrequency(frame.B.value+100)
-                    }
+                    // create a sound for both values
+                    setFrequency(frame.A.value+150)
+                    setTimeout(()=>{
+                        setFrequency(frame.B.value+150)
+                    },factor/2)
                     bars[frame.A.index].style.backgroundColor = '#00ff00'
                     bars[frame.A.index].style.height = `${frame.B.value}px`
                     bars[frame.A.index].title = frame.B.value
@@ -310,7 +313,7 @@ const SortingVisualiser = () => {
             } else if (frame.type === 'change') {
                 setTimeout(() => {
                     // create a sound for value
-                    setFrequency(Math.floor(frame.value)+100)
+                    setFrequency(Math.floor(frame.value)+150)
                     bars[frame.index].title = frame.value
                     bars[frame.index].style.height = `${frame.value}px`
                     bars[frame.index].style.backgroundColor = `#00ff00`
@@ -396,10 +399,14 @@ const SortingVisualiser = () => {
                             const array=[...mainArray]
                             animationFunc(array)
                         }}>sort !</button>
+                        {/* kill animation btn */}
                 </div>
             </section>
             <section id="sortingSection" ref={graphRef}>
-                {algoTimer.end && <p id='algoTimer'>time to sort: {algoTimer.end - algoTimer.start >= 1 ? algoTimer.end - algoTimer.start : 'less then 1'}ms</p>}
+                <div id='leftInfo'>
+                    <p>{comparisons===null ? <p>no comparisons yet</p> : <p><span>{comparisons}</span>comparison{comparisons===1 ? 's' : ''}</p>}</p>
+                    <p>{!algoTimer.end ? <p>no timing yet</p> : <p>time to sort: <span>{algoTimer.end - algoTimer.start >= 1 ? algoTimer.end - algoTimer.start : 'less then 1'}ms</span></p>}</p>
+                </div>
                 <p
                     style={{
                         color: isAnimating && '#a00000',

@@ -72,17 +72,29 @@
   flex-grow: 1;
   background-color: var(--colorScale3);
 }
-#algoTimer{
+#leftInfo{
   position: absolute;
   top: 0px;
   left: 0px;
+  display: flex;
+  flex-direction: column;
+}
+#leftInfo *{
   font:700 var(--fontSize-M) var(--font1);
+}
+#leftInfo span{
+  color: var(--colorScale5);
+}
+#leftInfo p{
+  display: flex;
+  gap: 5px;
 }
 #numOfBars{
   position: absolute;
   top: 0px;
   right: 0px;
   font:700 var(--fontSize-M) var(--font1);
+  cursor: pointer;
 }
 /* responsive */
 @media (width<1200px){
