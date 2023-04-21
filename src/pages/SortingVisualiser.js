@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useState } from 'react'
+import { useFrequency } from 'react-frequency'
 import '../css/SortingVisualiser.css'
 const SortingVisualiser = () => {
     const [bars, setBars] = useState([])
@@ -47,7 +48,13 @@ const SortingVisualiser = () => {
         }
         // look for the actual end of the function to return the animations array
         if (tempArr.length === array.length) {
-            return animations
+            // save the moment the sorting ended
+            setAlgoTimer(prev=>{
+                return {
+                ...prev,
+                end:Date.now()}
+            })
+            return [array ,...animations]
         } else {
             return { s: firstParams.s, e: secondParams.e }
         }
@@ -91,7 +98,13 @@ const SortingVisualiser = () => {
             totalRuns++
         }
         // return an array of frames
-        return animations
+        // save the moment the sorting ended
+        setAlgoTimer(prev=>{
+            return {
+            ...prev,
+            end:Date.now()}
+        })
+        return [array ,...animations]
     }
     // quick sort
     const quickSort = (array, animations = [], s = 0, e = array.length) => {
@@ -130,65 +143,76 @@ const SortingVisualiser = () => {
             // unsorted right (bigger nums)
             quickSort(array, animations, swapIndx, e)
         }
-        return animations
+        // save the moment the sorting ended
+        setAlgoTimer(prev=>{
+            return {
+            ...prev,
+            end:Date.now()}
+        })
+        return [array ,...animations]
     }
     // heap sort
-    // const lowerMaxNum=(array ,animations ,lastUnsortedIndex ,parent=0 )=>{
-    //     console.log(array)
-    //     let smallerIndx=parent
-    //     const leftChild=parent+parent+1
-    //     const rightChild=parent+parent+2
-    //     if(array[leftChild]>array[rightChild]){
-    //         smallerIndx=rightChild
-    //     }else{
-    //         smallerIndx=leftChild
-    //     }
-    //     console.log(smallerIndx ,lastUnsortedIndex)
-    //     if(smallerIndx<=lastUnsortedIndex){
-    //         swap(array ,parent ,smallerIndx)
-    //         lowerMaxNum(array ,animations ,lastUnsortedIndex ,smallerIndx)
-    //     }
-    // }
     const maxNum=(array ,animations ,lastUnsortedIndex ,parent)=>{
+        // find the left and right children of the parent node
         const leftChild=parent+parent+1
         const rightChild=parent+parent+2
+        // if the node is not a parent break the recursion
         if(!leftChild && !rightChild) return
+        // if the right child is within the unsorted area and is bigger than its parent swap them
         if(rightChild<lastUnsortedIndex+1){
             animations.push({ type: 'compare', A: rightChild, B: parent })
             if(array[rightChild]>array[parent]){
                 animations.push({ type: 'swap', A: { index: parent, value: array[parent] }, B: { index: rightChild, value: array[rightChild] } })
                 swap(array ,parent ,rightChild)
+                // create a recursion heap logic aplies to all parent nodes
                 maxNum(array ,animations ,lastUnsortedIndex ,rightChild)
             }
         }
+        // if the left child is within the unsorted area and is bigger than its parent swap them
         if(leftChild<lastUnsortedIndex+1){
             animations.push({ type: 'compare', A: leftChild, B: parent })
             if(array[leftChild]>array[parent]){
                 animations.push({ type: 'swap', A: { index: parent, value: array[parent] }, B: { index: leftChild, value: array[leftChild] } })
                 swap(array ,parent ,leftChild)
+                // create a recursion heap logic aplies to all parent nodes
                 maxNum(array ,animations ,lastUnsortedIndex ,leftChild)
             }
         }
         }
-        const heapSort=(array ,animations=[])=>{
+    const heapSort=(array ,animations=[])=>{
+            // get all the parent nodes in on array
         const parentNodes=[]
         for(let i=Math.floor(array.length/2)-1;i>=0;i--){
             parentNodes.push(i)
         }
+        // the index where all values after it are sorted
         let lastUnsortedIndex=array.length-1
+        // loop until the sorted side is the arrays length
         while(lastUnsortedIndex>=0){
+            // loop until heap logic aplies to all nodes
             parentNodes.map(parent=>{
                 maxNum(array ,animations ,lastUnsortedIndex ,parent)
             })
+            // swap the first value by the last unsoted one
             animations.push({ type: 'swap', A: { index: 0, value: array[0] }, B: { index: lastUnsortedIndex, value: array[lastUnsortedIndex] } })
             swap(array ,0 ,lastUnsortedIndex)
+            // decrease the unsorted section in the array
             lastUnsortedIndex--
         }
-        console.log(array)
-        return animations
+        // save the moment the sorting ended
+        setAlgoTimer(prev=>{
+            return {
+            ...prev,
+            end:Date.now()}
+        })
+        return [array ,...animations]
     }
 
     // end
+    const [frequency, setFrequency] = useState(1)
+    const { start, stop, playing } = useFrequency({
+        hz: frequency
+      })
     const [algoTimer, setAlgoTimer] = useState({
         start: null,
         end: null
@@ -201,24 +225,63 @@ const SortingVisualiser = () => {
     const graphRef = useRef()
     const maxNumber = 400 //400 for best proformence
     const minNumber = 4   //4 for best proformence
+    // run the chosen sorting algo which return animation frames and create timeouts for each frame
     const animationFunc = (arr) => {
         // the number of mileseconds in between every frame
-        let factor = width < 15 ? 500 : width < 20 ? 100 : width < 100 ? 50 : width < 150 ? 10 : 5
+        let factor = width < 15 ? 500 : width < 20 ? 100 : width < 100 ? 50 : width < 150 ? 12 : width < 200 ? 4 : 2
         // history of the last time out to create a consitent flow 
-        let i = factor
+        let i = 0
+        // save the moment the function started
+        setAlgoTimer({
+            start:Date.now(),
+            end:null
+        })
         // get animatins from the chosen algorithm
         const animations = algo === 1 ? mergeSort(arr) : algo === 2 ? quickSort(arr) : algo === 3 ? heapSort(arr) : bubbleSort(arr)
+        const sortedArr=animations.splice(0 ,1)[0]
+        // check if the starting array was already sorted
+        if(JSON.stringify(mainArray)===JSON.stringify(sortedArr)){
+            // a timeout to restore default values at the end of the animation
+            setTimeout(() => {
+                setFrequency(0)
+                setIsAnimating(false)
+            }, mainArray.length * factor)
+            // loop over all bars creating a "array sorted" animation
+            sortedArr.map((val,index)=>{
+                if(!playing) start()        
+                setTimeout(()=>{
+                    setFrequency(val+100)
+                    bars[index].style.backgroundColor='#00ff00'
+                    setTimeout(()=>{
+                        bars[index].style.backgroundColor='var(--colorScale3)'
+                    },factor)
+                },i)
+                i+=factor
+            })
+        }else{
         setTimeout(() => {
+            // a timeout to restore default values at the end of the animation
+            setFrequency(0)
             setIsAnimating(false)
+            setMainArray(sortedArr)
         }, animations.length * factor)
         // loop through the frames and set timeouts accodingly
         animations.map(frame => {
+            if(!playing) start()
             // a frame comparing two values and changing their color to red
             if (frame.type === 'compare') {
                 setTimeout(() => {
+                    // create a sound for the greater value
+                    if(Number(bars[frame.A].title)>Number(bars[frame.B].title)){
+                        setFrequency(Number(bars[frame.A].title))
+                    }else{
+                        setFrequency(Number(bars[frame.B].title))
+                    }
+                    // make compared values red
                     bars[frame.A].style.backgroundColor = 'red'
                     bars[frame.B].style.backgroundColor = 'red'
                     setTimeout(() => {
+                        // restore original color on the next frame
                         bars[frame.A].style.backgroundColor = ''
                         bars[frame.B].style.backgroundColor = ''
                     }, factor - factor / 10)
@@ -226,6 +289,12 @@ const SortingVisualiser = () => {
                 // a frame swaping two values
             } else if (frame.type === 'swap') {
                 setTimeout(() => {
+                    // create a sound for the greater value
+                    if(frame.A.value>frame.B.value){
+                        setFrequency(frame.A.value+100)
+                    }else{
+                        setFrequency(frame.B.value+100)
+                    }
                     bars[frame.A.index].style.backgroundColor = '#00ff00'
                     bars[frame.A.index].style.height = `${frame.B.value}px`
                     bars[frame.A.index].title = frame.B.value
@@ -240,6 +309,8 @@ const SortingVisualiser = () => {
                 // a frame changing the height of a value
             } else if (frame.type === 'change') {
                 setTimeout(() => {
+                    // create a sound for value
+                    setFrequency(Math.floor(frame.value)+100)
                     bars[frame.index].title = frame.value
                     bars[frame.index].style.height = `${frame.value}px`
                     bars[frame.index].style.backgroundColor = `#00ff00`
@@ -248,9 +319,10 @@ const SortingVisualiser = () => {
                     }, factor)
                 }, i)
             }
-            i += factor
+            i+=factor
         })
-    }
+    }}
+    // create an array with a chosen length with random values between min and max
     const newArray = () => {
         const arr = []
         for (let i = 0; i < width; i++) {
@@ -262,20 +334,27 @@ const SortingVisualiser = () => {
         setMainArray(newArray())
     }, [width])
     useEffect(() => {
+        // stop the sound when the animation is done
+        if(frequency===0) stop()
+        if(!isAnimating) stop()
+    }, [frequency])
+    useEffect(() => {
         setBars(document.querySelectorAll('.bar'))
-        if (algoTimer.end === null && algoTimer.start !== null) {
-            setAlgoTimer({ ...algoTimer, end: Date.now() })
-        }
     }, [mainArray])
     useEffect(() => {
         setMax(Math.floor((graphRef.current.clientWidth - 60) / 4))
+        start()
+        setTimeout(()=>{setFrequency(0)},1000)
     }, [])
     return (
         <main>
             <section id="sortingOptionsBar">
                 <div className="sortingOption" id="generateArrayOption">
                     <button
-                        style={{ backgroundColor: isAnimating ? '#a00000' : '' }}
+                        style={{
+                            background: isAnimating && '#a00000',
+                            cursor: isAnimating && 'not-allowed'
+                        }}
                         onClick={() => {
                             if (isAnimating) return
                             setMainArray(newArray())
@@ -284,7 +363,10 @@ const SortingVisualiser = () => {
                 <div className="sortingOption" id="silderOption">
                     <p>alter array size and sorting speed</p>
                     <input
-                        style={{ background: isAnimating ? '#a00000' : '' }}
+                        style={{
+                            background: isAnimating && '#a00000',
+                            cursor: isAnimating && 'not-allowed'
+                        }}
                         id='widthRange'
                         type='range'
                         min={minNumber}
@@ -304,17 +386,32 @@ const SortingVisualiser = () => {
                 </div>
                 <div className="sortingOption" id="sortOption">
                     <button
-                        style={{ backgroundColor: isAnimating ? '#a00000' : '' }}
+                        style={{
+                            background: isAnimating && '#a00000',
+                            cursor: isAnimating && 'not-allowed'
+                        }}
                         onClick={() => {
                             if (isAnimating) return
-                            // setIsAnimating(true) sorts the array before the animations
-                            animationFunc(mainArray)
+                            setIsAnimating(true)
+                            const array=[...mainArray]
+                            animationFunc(array)
                         }}>sort !</button>
                 </div>
             </section>
             <section id="sortingSection" ref={graphRef}>
                 {algoTimer.end && <p id='algoTimer'>time to sort: {algoTimer.end - algoTimer.start >= 1 ? algoTimer.end - algoTimer.start : 'less then 1'}ms</p>}
-                <p onClick={() => { setWidth(prev => { return prev + 1 }) }} id='numOfBars'>{width === 1 ? `${width} bar` : `${width} bars`}</p>
+                <p
+                    style={{
+                        color: isAnimating && '#a00000',
+                        cursor: isAnimating && 'not-allowed'
+                    }}
+                    onClick={() => {
+                    if(isAnimating) return
+                    if(width+1>max) return
+                    setWidth(prev => { return prev + 1 }) }} id='numOfBars'
+                >
+                    {width === 1 ? `${width} bar` : `${width} bars`}
+                </p>
                 {mainArray.length ? mainArray.map((value, indx) => {
                     return (
                         <div className='bar' key={indx} title={value} style={{ height: `${value}px` }}></div>

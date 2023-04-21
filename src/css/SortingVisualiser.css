@@ -40,6 +40,7 @@
   background-image: linear-gradient(90deg ,var(--colorScale5) ,var(--colorScale1));
   height: 4px;
   border-radius: var(--radius-B);
+  cursor: pointer;
 }
 #widthRange::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -49,7 +50,6 @@
   border-radius: 50%;
   background: var(--colorScale1);
   border: 1px solid var(--grayScale1);
-  cursor: pointer;
 }
 #widthRange::-moz-range-thumb{
   -webkit-appearance: none;
@@ -59,7 +59,6 @@
   border-radius: 50%;
   background: var(--colorScale1);
   border: 1px solid var(--grayScale1);
-  cursor: pointer;
 }
 #sortingSection{
   height: 500px;
@@ -77,11 +76,43 @@
   position: absolute;
   top: 0px;
   left: 0px;
-  font:700 var(--fontSize-M) var(--font1)
+  font:700 var(--fontSize-M) var(--font1);
 }
 #numOfBars{
   position: absolute;
   top: 0px;
   right: 0px;
-  font:700 var(--fontSize-M) var(--font1)
+  font:700 var(--fontSize-M) var(--font1);
+}
+/* responsive */
+@media (width<1200px){
+  :root{
+      --fontSize-B:28px;
+      --fontSize-M:23px;
+  }
+}
+@media (width<992px){
+  :root{
+      --fontSize-B:25px;
+      --fontSize-M:20px;
+  }
+}
+@media (width<768px){
+  :root{
+      --fontSize-B:22px;
+      --fontSize-M:17px;
+  }
+}
+@media (width<576px){
+  :root{
+      --fontSize-B:20px;
+      --fontSize-S:15px;
+  }
+}
+@media (width<450px){
+  :root{
+      --fontSize-B:18px;
+      --fontSize-M:16px;
+      --fontSize-S:11px;
+  }
 }
