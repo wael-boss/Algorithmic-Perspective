@@ -383,7 +383,7 @@ const SortingVisualiser = () => {
     },false);
     return (
         <main>
-            <section id="sortingOptionsBar">
+            <section id="sortingOptionsBar" className='optionsSection'>
                 <div className="sortingOption" id="generateArrayOption">
                     <button
                         style={{
@@ -396,7 +396,7 @@ const SortingVisualiser = () => {
                         }}>Generate New Array</button>
                 </div>
                 <div className="sortingOption" id="silderOption">
-                    <p>alter array size and sorting speed</p>
+                    <p>Alter array size and sorting speed</p>
                     <input
                         style={{
                             background: isAnimating && '#a00000',
@@ -414,7 +414,7 @@ const SortingVisualiser = () => {
                     />
                 </div>
                 <div className="sortingOption" id='alogorithmOptionSection'>
-                    <p>algorithm:</p>
+                    <p>Algorithm:</p>
                     <div id="alogorithmOption">
                         <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>MergeSort</p>
                         <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>QuickSort</p>
@@ -434,7 +434,7 @@ const SortingVisualiser = () => {
                             setIsAnimating(true)
                             const array=[...mainArray]
                             animationFunc(array)
-                        }}>sort !</button>
+                        }}>Sort !</button>
                 </div>
             </section>
             <section id="sortingSection" ref={graphRef}>

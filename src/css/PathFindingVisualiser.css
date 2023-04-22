@@ -1,0 +1,12 @@
+#pathFindingAlgoritms{
+    display: flex;
+    gap: 10px;
+}
+#pathFindingAlgoritms>div{
+    display: flex;
+    gap: 10px;
+}
+#pathFindingAlgoritms>div>p{
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+}

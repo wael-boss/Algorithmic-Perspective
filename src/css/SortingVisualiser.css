@@ -1,23 +1,3 @@
-#sortingOptionsBar{
-    background-color: #00000ada;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    overflow: hidden;
-    position: relative;
-  }
-#sortingOptionsBar::before{
-  content: '';
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  right: 0px;
-  left: 0px;
-  background-image: linear-gradient(45deg, #3333ff 25%, #4d4dff 25%, #4d4dff 50%, #3333ff 50%, #3333ff 75%, #4d4dff 75%, #4d4dff 100%);
-  background-size: 56.57px 56.57px;
-  z-index: -1;
-}
 .sortingOption{
   display: flex;
   align-items: center;

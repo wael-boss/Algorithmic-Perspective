@@ -9,6 +9,7 @@ const Header = () => {
         </div>
         <nav id="headerAncors">
           <NavLink to='/'>Sorting visualiser</NavLink>
+          <NavLink to='/pathFinding'>pathFinding visualiser</NavLink>
         </nav>
     </header>
   )

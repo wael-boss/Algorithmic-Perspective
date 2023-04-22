@@ -141,6 +141,26 @@ footer{
   font: 600 var(--fontSize-B) var(--font1);
   background-image: linear-gradient(180deg ,var(--colorScale2) 0% 1% ,var(--grayScale1) 3% 100%);
 }
+section:is(.optionsSection){
+  background-color: #00000ada;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+section:is(.optionsSection)::before{
+content: '';
+position: absolute;
+top: 0px;
+bottom: 0px;
+right: 0px;
+left: 0px;
+background-image: linear-gradient(45deg, #3333ff 25%, #4d4dff 25%, #4d4dff 50%, #3333ff 50%, #3333ff 75%, #4d4dff 75%, #4d4dff 100%);
+background-size: 56.57px 56.57px;
+z-index: -1;
+}
 @media (width<1200px){
   :root{
       --fontSize-B:28px;
