@@ -210,12 +210,12 @@ const SortingVisualiser = () => {
     // insertion sort
     const insertionSort=(array)=>{
         const animations=[]
-        for(let i=0;i<array.length;i++){
-            animations.push({ type: 'compare', A: i, B: i+1 })
+        for(let i=0;i<array.length-1;i++){
+            if(i>=0) animations.push({ type: 'compare', A: i, B: i+1 })
             for(let focusNum=i+1;array[focusNum]<array[focusNum-1];focusNum--){
                 animations.push({ type: 'swap', A: { index: focusNum, value: array[focusNum] }, B: { index: focusNum-1, value: array[focusNum-1] } })
                 swap(array ,focusNum ,focusNum-1)
-                animations.push({ type: 'compare', A: focusNum-1, B: focusNum-2 })
+                if(focusNum-2>=0) animations.push({ type: 'compare', A: focusNum-1, B: focusNum-2 })       
             }
         }
         setAlgoTimer(prev=>{
@@ -228,8 +228,7 @@ const SortingVisualiser = () => {
     // end
     const [frequency, setFrequency] = useState(1)
     const { start, stop, playing } = useFrequency({
-        hz: frequency,
-        oscillator: "swatooth"
+        hz: frequency
     })
     const [algoTimer, setAlgoTimer] = useState({
         start: null,
@@ -241,13 +240,14 @@ const SortingVisualiser = () => {
     const [algo, setAlgo] = useState(1)
     const [isAnimating, setIsAnimating] = useState(false)
     const [comparisons, setComparisons] = useState(null)
+    const [visibleWindow, setVisibleWindow] = useState(true)
     const graphRef = useRef()
     const maxNumber = 400 //400 for best proformence
     const minNumber = 4   //4 for best proformence
     // run the chosen sorting algo which return animation frames and create timeouts for each frame
     const animationFunc = (arr) => {
         // the number of mileseconds in between every frame
-        let factor = width < 15 ? 500 : width < 20 ? 100 : width < 100 ? 50 : width < 150 ? 12 : width < 200 ? 4 : 2
+        let factor = width < 15 ? 500 : width < 30 ? 100 : width < 50 ? 50 : width < 100 ? 15 : width < 150 ? 10 : width < 200 ? 4 : 2
         // history of the last time out to create a consitent flow 
         let i = 0
         // save the moment the function started
@@ -362,10 +362,25 @@ const SortingVisualiser = () => {
         setBars(document.querySelectorAll('.bar'))
     }, [mainArray])
     useEffect(() => {
+        if(!isAnimating) setFrequency(0)
+        if(visibleWindow && frequency>0){
+            start()
+        }else{
+            stop()
+        }
+    }, [visibleWindow])
+    useEffect(() => {
         setMax(Math.floor((graphRef.current.clientWidth - 60) / 4))
         start()
         setTimeout(()=>{setFrequency(0)},1000)
     }, [])
+    document.addEventListener( 'visibilitychange' ,e=>{
+        if(document.hidden) {
+            if(visibleWindow) setVisibleWindow(false)
+        }else{
+            if(!visibleWindow) setVisibleWindow(true)
+        }
+    },false);
     return (
         <main>
             <section id="sortingOptionsBar">
@@ -398,12 +413,15 @@ const SortingVisualiser = () => {
                         }}
                     />
                 </div>
-                <div className="sortingOption" id="alogorithmOption">
-                    <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>merge</p>
-                    <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>Quick</p>
-                    <p style={{ borderBottomColor: algo === 3 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(3)}>Heap</p>
-                    <p style={{ borderBottomColor: algo === 4 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(4)}>Bubble</p>
-                    <p style={{ borderBottomColor: algo === 5 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(5)}>insertion</p>
+                <div className="sortingOption" id='alogorithmOptionSection'>
+                    <p>algorithm:</p>
+                    <div id="alogorithmOption">
+                        <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>MergeSort</p>
+                        <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>QuickSort</p>
+                        <p style={{ borderBottomColor: algo === 3 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(3)}>HeapSort</p>
+                        <p style={{ borderBottomColor: algo === 4 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(4)}>BubbleSort</p>
+                        <p style={{ borderBottomColor: algo === 5 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(5)}>InsertionSort</p>
+                    </div>
                 </div>
                 <div className="sortingOption" id="sortOption">
                     <button
@@ -421,8 +439,8 @@ const SortingVisualiser = () => {
             </section>
             <section id="sortingSection" ref={graphRef}>
                 <div id='leftInfo'>
-                    <p>{comparisons===null ? <p>no comparisons yet</p> : <p><span>{comparisons}</span>comparison{comparisons===1 ? 's' : ''}</p>}</p>
-                    <p>{!algoTimer.end ? <p>no timing yet</p> : <p>time to sort: <span>{algoTimer.end - algoTimer.start >= 1 ? algoTimer.end - algoTimer.start : 'less then 1'}ms</span></p>}</p>
+                    {comparisons===null ? <p>no comparisons yet</p> : <p><span>{comparisons}</span>comparison{comparisons===1 ? '' : 's'}</p>}
+                    {!algoTimer.end ? <p>no timing yet</p> : <p>time to sort: <span>{algoTimer.end - algoTimer.start >= 1 ? algoTimer.end - algoTimer.start : 'less then 1'}ms</span></p>}
                 </div>
                 <p
                     style={{

@@ -93,12 +93,21 @@ header{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 10%;
+  padding: 20px 75px;
   background-color: var(--grayScale1);
+}
+#logoContainer{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 #logoContainer>h1{
   font:700 calc(var(--fontSize-B) + 3px) var(--font1);
   color: var(--colorScale5);
+}
+#logoContainer>img{
+  width: 50px;
 }
 #headerAncors{
   display: flex;
@@ -143,20 +152,29 @@ footer{
       --fontSize-B:25px;
       --fontSize-M:20px;
   }
+  header {
+    padding: 20px 20px;
+  }
 }
 @media (width<768px){
   :root{
       --fontSize-B:22px;
       --fontSize-M:17px;
   }
+  header {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  padding: 20px 0px;
+  }
 }
 @media (width<576px){
   :root{
-      --fontSize-B:20px;
-      --fontSize-S:15px;
+    --fontSize-B:20px;
+    --fontSize-S:15px;
   }
-  header {
-    padding: 20px 5%;
+#logoContainer>img{
+  width: 40px;
 }
 }
 @media (width<450px){
@@ -165,9 +183,7 @@ footer{
       --fontSize-M:16px;
       --fontSize-S:11px;
   }
-  header {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+  #logoContainer>h1 {
+    font: 700 var(--fontSize-B) var(--font1);
 }
 }

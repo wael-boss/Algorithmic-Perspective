@@ -29,6 +29,15 @@
 #silderOption{
   flex-direction: column;
 }
+#alogorithmOptionSection {
+  display: flex;
+  flex-wrap: wrap;
+}
+#alogorithmOption{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 #alogorithmOption>p{
   cursor: pointer;
   border-bottom: 1px solid transparent;
@@ -105,19 +114,28 @@
     margin: 20px 10px 0px 10px;
 }
 #sortingOptionsBar *{
-    flex-grow: 1;
-    text-align: center;
-  }
+  flex-grow: 1;
+  text-align: center;
+}
 }
 @media (width<768px){
 }
 @media (width<576px){
+  section {
+    padding: 10px 5px;
+  }
 }
 @media (width<450px){
   section {
-    padding: 10px 15px;
+    padding: 10px 5px;
   }
   .sortingOption{
     gap: 10px;
+  }
+  #sortingOptionsBar>div:not(:first-child){
+    margin: 0px 10px 0px 10px;
+  }
+  #sortingOptionsBar>div:not(:first-child){
+    margin: 20px 10px 0px 10px;
   }
 }

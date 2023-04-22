@@ -1,10 +1,11 @@
-import { Link, NavLink } from "react-router-dom"
+import { NavLink } from "react-router-dom"
 
 const Header = () => {
   return (
     <header>
         <div id="logoContainer">
-          <h1>logo</h1>
+          <img src="favicon.png"/>
+          <h1>Algorithmic Perspective</h1>
         </div>
         <nav id="headerAncors">
           <NavLink to='/'>Sorting visualiser</NavLink>
