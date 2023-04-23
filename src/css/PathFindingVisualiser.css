@@ -10,3 +10,12 @@
     border-bottom: 1px solid transparent;
     cursor: pointer;
 }
+#pathFindingSection{
+    display: grid;
+    padding: 0;
+    margin: auto;
+}
+.node{
+    aspect-ratio: 1/1;
+    border: 1px solid #fff;
+}
