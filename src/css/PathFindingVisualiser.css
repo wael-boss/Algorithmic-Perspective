@@ -20,13 +20,43 @@
     border: 1px solid var(--grayScale5);
     display: grid;
     place-items: center;
+    position: relative;
 }
-.wall{
+.wall::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation: popIn .3s cubic-bezier(.42,0,.38,1.6);
     background-color: var(--colorScale2);
 }
 .start{
-    background-color: #00ff00;
+    cursor: grab;
 }
 .end{
+    cursor: grab;
+}
+.start::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation: popIn .3s cubic-bezier(.42,0,.38,1.6);
+    background-color: #00ff00;
+}
+.end::before{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    animation: popIn .1s cubic-bezier(.42,0,.38,1.6);
     background-color: #ff0000
+}
+@keyframes popIn {
+    0%{
+        scale:0;
+    }
+    100%{
+        scale:1;
+    }
 }

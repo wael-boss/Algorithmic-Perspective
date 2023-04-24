@@ -22,6 +22,11 @@ const PathFindingVisualiser = () => {
   const Yaxis=500
   const nodeScale=20
   const [isAnimating ,setIsAnimating]=useState(false)
+  const [dragedDestination,setDragedDestination]=useState('')
+  const [destinationsPositions ,setDestinationsPositions]=useState({
+    start:null,
+    end:null
+  })
   const [algo ,setAlgo]=useState(1)
   const [nodesJSX ,setNodesJSX]=useState([])
   const [gridValues ,setGridValues]=useState({
@@ -51,6 +56,40 @@ const PathFindingVisualiser = () => {
     nodesDOM[index].classList.add('wall')
   }
   }
+  const handleDestinationsMove=(i ,e)=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const target=nodesDOM[i]
+    const tagetNodeClassList=[target.classList][0]
+    if(dragedDestination==='start'){
+      const startNode=[...nodesDOM].filter(node=>[...node.classList].includes('start'))[0]
+      if(![...tagetNodeClassList].includes('start')){
+        if([...tagetNodeClassList].length+1>2) return
+          startNode.classList.remove('start')
+          target.classList.add('start')
+          setDestinationsPositions(prev=>{
+            return {
+            ...prev ,
+            start:i}
+          })
+          createGrid()
+      }
+    }else if(dragedDestination==='end'){
+      const endNode=[...nodesDOM].filter(node=>[...node.classList].includes('end'))[0]
+      if(![...tagetNodeClassList].includes('end')){
+        if([...tagetNodeClassList].length+1>2) return
+        endNode.classList.remove('end')
+        target.classList.add('end')
+        setDestinationsPositions(prev=>{
+          return {
+            ...prev ,
+            end:i}
+          })
+          createGrid()
+      }
+    }else{
+      createGrid()
+    }
+  }
   const createNodes=()=>{
       const result=[]
       let startNode=Math.floor(Math.random()*gridValues.total)
@@ -61,6 +100,15 @@ const PathFindingVisualiser = () => {
       if(startNode===endNode && startNode===0){
         endNode=gridValues.total-1
       }
+      if(destinationsPositions.start===null){
+        setDestinationsPositions({
+          start:startNode,
+          end:endNode
+        })
+      }else{
+        startNode=destinationsPositions.start
+        endNode=destinationsPositions.end  
+      }
       for(let i=0;i<gridValues.total;i++){
         const line=Math.floor(i/gridValues.x)+1
         const up=i<gridValues.x ? null : i-gridValues.x
@@ -70,19 +118,30 @@ const PathFindingVisualiser = () => {
         const location={up:up,right:right,down:down,left:left}
         result.push(
         <div
+          draggable={i===startNode || i===endNode ? true : false}
           key={i}
           className={`node ${i===startNode ? 'start' : ''} ${i===endNode ? 'end' : ''} `}
           style=
           {{
             width:`${nodeScale}px`
           }}
-          data-location={JSON.stringify(location)}
-          onClick={()=>{handleWallCreation(i)}}
-          onMouseOver={(e)=>{
+            data-location={JSON.stringify(location)}
+            onClick={()=>{handleWallCreation(i)}}
+            onMouseOver={(e)=>{
             if (e.buttons<1) return
             handleWallCreation(i)
           }}
-        ></div>
+          onDragOver={(e)=>{
+            handleDestinationsMove(i ,e)
+          }}
+          onDragStart={(e)=>{
+            setDragedDestination(i===startNode ? 'start' : 'end')
+          }}
+          onDragEnd={()=>{
+            setDragedDestination('')
+          }}
+        >
+        </div>
         )
     }
     setNodesJSX(result)
@@ -138,7 +197,7 @@ const PathFindingVisualiser = () => {
           gridTemplateColumns:gridValues.x!==null ? `repeat(${gridValues.x},${nodeScale}px)` : ``
         }}
         >
-          {nodesJSX.length ? nodesJSX : 'error'}
+          {nodesJSX.length ? nodesJSX : ''}
         </section>
     </main>
   )
