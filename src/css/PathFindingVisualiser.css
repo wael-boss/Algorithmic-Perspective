@@ -17,5 +17,16 @@
 }
 .node{
     aspect-ratio: 1/1;
-    border: 1px solid #fff;
+    border: 1px solid var(--grayScale5);
+    display: grid;
+    place-items: center;
+}
+.wall{
+    background-color: var(--colorScale2);
+}
+.start{
+    background-color: #00ff00;
+}
+.end{
+    background-color: #ff0000
 }
