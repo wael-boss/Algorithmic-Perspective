@@ -34,7 +34,7 @@
     height: 100%;
     animation: popIn .2s cubic-bezier(.42,0,.38,1.6);
 }
-.wall::before{
+.node:is(.wall)::before{
     content: '';
     background-color: var(--colorScale2);
 }
@@ -48,7 +48,7 @@
 }
 .visited::before{
     content: '';
-    background-color: #ff8400
+    background-color: #ff8a0c
 }
 .path::before{
     content: '';

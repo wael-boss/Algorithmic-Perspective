@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import '../css/PathFindingVisualiser.css'
 const PathFindingVisualiser = () => {
   const maze=()=>{
@@ -38,9 +38,29 @@ const PathFindingVisualiser = () => {
     y:null
   })
   const gridDOM=useRef()
+  const dijkstrasLogic=(validNeighbors ,history)=>{
+    validNeighbors.map(neighborIndex=>{
+      // get the current neighbor history tab
+      let curr=history[neighborIndex]
+      if(history[curr.lastVisitor].shortestPath<curr.lastVisitor){
+        history[neighborIndex]={
+          ...history[neighborIndex],
+          shortestPath:history[curr.lastVisitor].shortestPath+1,
+          lastVisitor:history[curr.lastVisitor].index
+        }
+      }
+    })
+  }
   const dijkstras=()=>{
     const nodesDOM=document.querySelectorAll('.node')
-    const unvisitedNodes=[destinationsPositions.start]
+    const history={}
+    const startIndex=destinationsPositions.start
+    history[startIndex]={
+      index:startIndex,
+      shortestPath:0,
+      lastVisitor:null,
+    }
+    const unvisitedNodes=[startIndex]
     const visitedNodes=[]
     let endNode=null
     const factor=10
@@ -52,7 +72,7 @@ const PathFindingVisualiser = () => {
       if(!visitedNodes.includes(currentNodeIndex)){
         // if the current node is end node finish the loop
         if([...currentNodeDOM.classList].includes('end')){
-          endNode=currentNodeDOM
+          endNode=currentNodeIndex
         }else{
         // save it as a visited node
         visitedNodes.push(currentNodeIndex)
@@ -63,20 +83,41 @@ const PathFindingVisualiser = () => {
         }
         //push the current nodes's valid neighbors to the unvisited array
         const neighborNodes=JSON.parse(currentNodeDOM.dataset.location)
+        const validNeighbors=[]
         Object.values(neighborNodes).map(index=>{
           // if null return
           if(index===null) return
           const neighborDOM=nodesDOM[index]
           // if wall return
-          if([...neighborDOM.classList].includes('wall')) return
           // if visited return
-          if(visitedNodes.includes(index)) return
+          if(visitedNodes.includes(index) || [...neighborDOM.classList].includes('wall')) return
           unvisitedNodes.push(index)
+          validNeighbors.push(index)
+          history[index]={
+            index:index,
+            shortestPath:999999,
+            lastVisitor:currentNodeIndex,
+          }
         })
+        dijkstrasLogic(validNeighbors ,history)
       }
     }
   }
-  console.log(endNode)
+  if(endNode===null){
+    console.log('not possible')
+  }else{
+  const animation=[]
+  let lastVisitor=history[endNode].lastVisitor
+  while(lastVisitor!==startIndex){
+    animation.unshift(history[lastVisitor].index)
+    lastVisitor=history[lastVisitor].lastVisitor
+  }
+  animation.map(frame=>{
+    setTimeout(()=>{
+      nodesDOM[frame].classList.add('path')
+    },j+=(factor*2))
+  })
+}
 }
   const createGrid=()=>{
     const XaxisLength=gridDOM.current.clientWidth
@@ -106,7 +147,7 @@ const PathFindingVisualiser = () => {
   const handleDestinationsMove=(currNodeIndex ,DnodeDragged)=>{
     const nodesDOM=document.querySelectorAll('.node')
     const currentNodeDOM=nodesDOM[currNodeIndex]
-    if([...currentNodeDOM.classList].length<2){
+    if(![...currentNodeDOM.classList].includes('wall')){
       if(DnodeDragged==='start'){
         const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
         setDestinationsPositions(prev=>{
@@ -122,7 +163,7 @@ const PathFindingVisualiser = () => {
           }
         })
         prevNodeDOM.classList.remove('start')
-        currentNodeDOM.classList.add('start')
+        currentNodeDOM.classList=('node start')
       }else{
         const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
         setDestinationsPositions(prev=>{
@@ -138,7 +179,7 @@ const PathFindingVisualiser = () => {
           }
         })
         prevNodeDOM.classList.remove('end')
-        currentNodeDOM.classList.add('end')
+        currentNodeDOM.classList=('node end')
   
       }
     }
@@ -197,6 +238,7 @@ const PathFindingVisualiser = () => {
           }}
             data-location={JSON.stringify(location)}
             onClick={()=>{
+              console.log(i)
               setDragedDestination(prev=>{
                 return {
                   ...prev,
@@ -240,7 +282,15 @@ const PathFindingVisualiser = () => {
       if([...classes].length>1 && ![...classes].includes('start') && ![...classes].includes('end')){
         node.classList.remove('wall')
         node.classList.remove('visited')
+        node.classList.remove('path')
       }
+    })
+  }
+  const clearVisits=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    nodesDOM.forEach(node=>{
+      if([...node.classList].includes('visited')) node.classList.remove('visited')
+      if([...node.classList].includes('path')) node.classList.remove('path')
     })
   }
   useEffect(()=>{
@@ -264,7 +314,16 @@ const PathFindingVisualiser = () => {
               <p onClick={maze}>Maze</p>
             </div>
             <div className='pathFindingOption'>
-              <p>Animation speed</p>
+              <p onClick={()=>{
+                const index=120
+              const pathHistor=[]
+              pathHistor[120]={
+                dom:<div></div>,
+                lastVistedFrom:121,
+                distance:20
+              }
+              console.log(pathHistor)
+              }}  >Animation speed</p>
             </div>
             <div className='pathFindingOption' id='pathFindingAlgoritms'>
               <p>Algorithm:</p>
@@ -274,7 +333,10 @@ const PathFindingVisualiser = () => {
               </div>
             </div>
             <div className='pathFindingOption'>
-              <button onClick={dijkstras}>Find path !</button>
+              <button onClick={()=>{
+                clearVisits()
+                dijkstras()
+              }}>Find path !</button>
             </div>
         </section>
         <section
