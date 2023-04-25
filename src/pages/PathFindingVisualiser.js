@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import '../css/PathFindingVisualiser.css'
 const PathFindingVisualiser = () => {
   const maze=()=>{
@@ -22,7 +22,10 @@ const PathFindingVisualiser = () => {
   const Yaxis=500
   const nodeScale=20
   const [isAnimating ,setIsAnimating]=useState(false)
-  const [dragedDestination,setDragedDestination]=useState('')
+  const [dragedDestination,setDragedDestination]=useState({
+    movingNode:null,
+    newIndex:null
+  })
   const [destinationsPositions ,setDestinationsPositions]=useState({
     start:null,
     end:null
@@ -51,53 +54,81 @@ const PathFindingVisualiser = () => {
     const classes=nodesDOM[index].classList
     if([...classes].includes('start') || [...classes].includes('end')) return
     if([...classes].includes('wall')){
-      nodesDOM[index].classList.remove('wall')
-    }else{
-    nodesDOM[index].classList.add('wall')
-  }
-  }
-  const handleDestinationsMove=(i ,e)=>{
-    const nodesDOM=document.querySelectorAll('.node')
-    const target=nodesDOM[i]
-    const tagetNodeClassList=[target.classList][0]
-    if(dragedDestination==='start'){
-      const startNode=[...nodesDOM].filter(node=>[...node.classList].includes('start'))[0]
-      if(![...tagetNodeClassList].includes('start')){
-        if([...tagetNodeClassList].length+1>2) return
-          startNode.classList.remove('start')
-          target.classList.add('start')
-          setDestinationsPositions(prev=>{
-            return {
-            ...prev ,
-            start:i}
-          })
-          createGrid()
-      }
-    }else if(dragedDestination==='end'){
-      const endNode=[...nodesDOM].filter(node=>[...node.classList].includes('end'))[0]
-      if(![...tagetNodeClassList].includes('end')){
-        if([...tagetNodeClassList].length+1>2) return
-        endNode.classList.remove('end')
-        target.classList.add('end')
-        setDestinationsPositions(prev=>{
-          return {
-            ...prev ,
-            end:i}
-          })
-          createGrid()
-      }
-    }else{
-      createGrid()
+      setTimeout(() => {
+        nodesDOM[index].classList.remove('wall')
+      }, 0)
+    } else {
+      setTimeout(() => {
+        nodesDOM[index].classList.add('wall')
+      }, 0)
     }
   }
-  const createNodes=()=>{
-      const result=[]
-      let startNode=Math.floor(Math.random()*gridValues.total)
-      let endNode=Math.floor(Math.random()*gridValues.total)
-      if(startNode===endNode && startNode===gridValues.total-1){
-        endNode=0
+  const handleDestinationsMove=(currNodeIndex ,DnodeDragged)=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const currentNodeDOM=nodesDOM[currNodeIndex]
+    if([...currentNodeDOM.classList].length<2){
+      if(DnodeDragged==='start'){
+        const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
+        setDestinationsPositions(prev=>{
+          return {
+            ...prev,
+            start:currNodeIndex
+          }
+        })
+        setDragedDestination(prev=>{
+          return {
+            ...prev,
+            movingNode:currNodeIndex
+          }
+        })
+        prevNodeDOM.classList.remove('start')
+        currentNodeDOM.classList.add('start')
+      }else{
+        const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
+        setDestinationsPositions(prev=>{
+          return {
+            ...prev,
+            end:currNodeIndex
+          }
+        })
+        setDragedDestination(prev=>{
+          return {
+            ...prev,
+            movingNode:currNodeIndex
+          }
+        })
+        prevNodeDOM.classList.remove('end')
+        currentNodeDOM.classList.add('end')
+  
       }
-      if(startNode===endNode && startNode===0){
+    }
+  }
+  const handleMouseEvent=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const movingNode=nodesDOM[dragedDestination.movingNode]
+    const targetNode=dragedDestination.newIndex
+    if(targetNode===null || !movingNode) return
+    const movingNodeClasses=movingNode.classList
+    const DnodeDragged=[...movingNodeClasses].includes('start') ? 'start' : [...movingNodeClasses].includes('end') ? 'end' : ''
+    if(DnodeDragged.length){
+      // move destination node
+      handleDestinationsMove(targetNode ,DnodeDragged)
+    }else{
+      // create wall
+      handleWallCreation(targetNode)
+    }
+  }
+  useEffect(()=>{
+    handleMouseEvent()
+  },[dragedDestination])
+  const createNodes=()=>{
+    const result=[]
+    let startNode=Math.floor(Math.random()*gridValues.total)
+    let endNode=Math.floor(Math.random()*gridValues.total)
+    if(startNode===endNode && startNode===gridValues.total-1){
+      endNode=0
+    }
+    if(startNode===endNode && startNode===0){
         endNode=gridValues.total-1
       }
       if(destinationsPositions.start===null){
@@ -118,7 +149,6 @@ const PathFindingVisualiser = () => {
         const location={up:up,right:right,down:down,left:left}
         result.push(
         <div
-          draggable={i===startNode || i===endNode ? true : false}
           key={i}
           className={`node ${i===startNode ? 'start' : ''} ${i===endNode ? 'end' : ''} `}
           style=
@@ -126,19 +156,36 @@ const PathFindingVisualiser = () => {
             width:`${nodeScale}px`
           }}
             data-location={JSON.stringify(location)}
-            onClick={()=>{handleWallCreation(i)}}
+            onClick={()=>{
+              setDragedDestination(prev=>{
+                return {
+                  ...prev,
+                  newIndex:i
+                }
+              })
+            }}
             onMouseOver={(e)=>{
-            if (e.buttons<1) return
-            handleWallCreation(i)
+              if(e.buttons<1) return
+                setDragedDestination(prev=>{
+                  return {
+                    ...prev,
+                    newIndex:i
+                  }
+                })
           }}
-          onDragOver={(e)=>{
-            handleDestinationsMove(i ,e)
+          onMouseDown={(e)=>{
+              e.preventDefault()
+              setDragedDestination({
+                movingNode:i,
+                newIndex:i
+              })
           }}
-          onDragStart={(e)=>{
-            setDragedDestination(i===startNode ? 'start' : 'end')
-          }}
-          onDragEnd={()=>{
-            setDragedDestination('')
+          onMouseUp={()=>{
+              setDragedDestination({
+                movingNode:null,
+                newIndex:null
+              })
+            
           }}
         >
         </div>
@@ -197,7 +244,9 @@ const PathFindingVisualiser = () => {
           gridTemplateColumns:gridValues.x!==null ? `repeat(${gridValues.x},${nodeScale}px)` : ``
         }}
         >
-          {nodesJSX.length ? nodesJSX : ''}
+          {nodesJSX.length ? nodesJSX.map(node=>{
+            return node
+          }) : ''}
         </section>
     </main>
   )
