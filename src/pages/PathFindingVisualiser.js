@@ -38,6 +38,46 @@ const PathFindingVisualiser = () => {
     y:null
   })
   const gridDOM=useRef()
+  const dijkstras=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const unvisitedNodes=[destinationsPositions.start]
+    const visitedNodes=[]
+    let endNode=null
+    const factor=10
+    let j=0
+    for(let i=0;i<unvisitedNodes.length && !endNode;i++){
+      const currentNodeIndex=unvisitedNodes[i]
+      const currentNodeDOM=nodesDOM[currentNodeIndex]
+      // if wall node or already visited do nothing
+      if(!visitedNodes.includes(currentNodeIndex)){
+        // if the current node is end node finish the loop
+        if([...currentNodeDOM.classList].includes('end')){
+          endNode=currentNodeDOM
+        }else{
+        // save it as a visited node
+        visitedNodes.push(currentNodeIndex)
+        if([...currentNodeDOM.classList].length<2){
+          setTimeout(()=>{
+            currentNodeDOM.classList.add('visited')
+          },j+=factor)
+        }
+        //push the current nodes's valid neighbors to the unvisited array
+        const neighborNodes=JSON.parse(currentNodeDOM.dataset.location)
+        Object.values(neighborNodes).map(index=>{
+          // if null return
+          if(index===null) return
+          const neighborDOM=nodesDOM[index]
+          // if wall return
+          if([...neighborDOM.classList].includes('wall')) return
+          // if visited return
+          if(visitedNodes.includes(index)) return
+          unvisitedNodes.push(index)
+        })
+      }
+    }
+  }
+  console.log(endNode)
+}
   const createGrid=()=>{
     const XaxisLength=gridDOM.current.clientWidth
     const XNodeAmount=Math.floor(XaxisLength/nodeScale)
@@ -197,8 +237,10 @@ const PathFindingVisualiser = () => {
     const nodesDOM=document.querySelectorAll('.node')
     nodesDOM.forEach(node=>{
       const classes=node.classList
-      if([...classes].length>1 && ![...classes].includes('wall')) return
-      node.classList.remove('wall')
+      if([...classes].length>1 && ![...classes].includes('start') && ![...classes].includes('end')){
+        node.classList.remove('wall')
+        node.classList.remove('visited')
+      }
     })
   }
   useEffect(()=>{
@@ -216,7 +258,7 @@ const PathFindingVisualiser = () => {
                 background: isAnimating && '#a00000'
               }}
               onClick={clearGrid}
-              >Reset</button>
+              >clear board</button>
             </div>
             <div className='pathFindingOption'>
               <p onClick={maze}>Maze</p>
@@ -232,7 +274,7 @@ const PathFindingVisualiser = () => {
               </div>
             </div>
             <div className='pathFindingOption'>
-              <button>Find path !</button>
+              <button onClick={dijkstras}>Find path !</button>
             </div>
         </section>
         <section

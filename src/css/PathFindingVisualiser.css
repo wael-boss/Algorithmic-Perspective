@@ -28,29 +28,31 @@
 .end{
     cursor: grab;
 }
-.wall::before{
-    content: '';
+.node::before{
     position: absolute;
     width: 100%;
     height: 100%;
-    animation: popIn .3s cubic-bezier(.42,0,.38,1.6);
+    animation: popIn .2s cubic-bezier(.42,0,.38,1.6);
+}
+.wall::before{
+    content: '';
     background-color: var(--colorScale2);
 }
 .start::before{
     content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    animation: popIn .3s cubic-bezier(.42,0,.38,1.6);
     background-color: #00ff00;
 }
 .end::before{
     content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    animation: popIn .3s cubic-bezier(.42,0,.38,1.6);
     background-color: #ff0000
+}
+.visited::before{
+    content: '';
+    background-color: #ff8400
+}
+.path::before{
+    content: '';
+    background-color: #fd0
 }
 @keyframes popIn {
     0%{
