@@ -48,6 +48,19 @@ const PathFindingVisualiser = () => {
       setIsAnimating(false)
     },j)
   }
+  // algos
+  const neighborNodes=(index ,nodesDOM ,visitedNodes)=>{
+    const currentNodeDOM=nodesDOM[index]
+    const location=JSON.parse(currentNodeDOM.dataset.location)
+    const validNeighbors=[]
+    Object.values(location).map(index=>{
+      if(index===null) return
+      const neighborDOM=nodesDOM[index]
+      if(visitedNodes.includes(index) || [...neighborDOM.classList].includes('wall')) return
+      validNeighbors.push(index)
+    })
+    return validNeighbors
+  }
   const dijkstrasLogic=(validNeighbors ,history)=>{
     validNeighbors.map(neighborIndex=>{
       // get the current neighbor history tab
@@ -123,9 +136,58 @@ const PathFindingVisualiser = () => {
   return [...animation ,...tempArr]
 }
   }
-const Astar=()=>{
+const depthFirstSeacrh=()=>{
+  const nodesDOM=document.querySelectorAll('.node')
+  const startIndex=destinationsPositions.start
+  const unvisitedNodes=[startIndex]
+  const stack=[startIndex]
+  const visitedNodes=[]
+  const animation=[]
+  let endIndex=null
+  for(let i=0;i<unvisitedNodes.length && endIndex===null && stack.length>0;i++){
+    const currentNodeIndex=unvisitedNodes[i]
+    const currentNodeDOM=nodesDOM[currentNodeIndex]
+    const currentNodeClasses=currentNodeDOM.classList
+    if([...currentNodeClasses].includes('end')){
+      // end loop
+      endIndex=currentNodeIndex
+    }else{
+      // mark as visited
+      visitedNodes.push(currentNodeIndex)
+      stack.push(currentNodeIndex)
+      if(currentNodeIndex!==startIndex) animation.push({index:currentNodeIndex,class:'visited'})
+      // keep searching
+      const validNeighbors=neighborNodes(currentNodeIndex ,nodesDOM ,visitedNodes)
+      if(validNeighbors.length===0){
+        let neighbors=0
+        while(neighbors<1 && stack.length>0){
+          const i=stack[stack.length-1]
+          const response=neighborNodes(i ,nodesDOM ,visitedNodes)
+          neighbors=response.length
+          if(neighbors>0){
+            const num=Math.floor(Math.random()*response.length)
+            unvisitedNodes.push(response[0])
+          }else{
 
+            stack.pop()
+          }
+        }
+      }else{
+        const num=Math.floor(Math.random()*validNeighbors.length)
+        unvisitedNodes.push(validNeighbors[0])
+      }
+    }
   }
+  if(endIndex===null){
+    console.log('not possible')
+  }else{
+    stack.map(index=>{
+      if(index!==startIndex) animation.push({index:index,class:'path'})
+    })
+  }
+  return animation
+  }
+  // end
   const createGrid=()=>{
     const XaxisLength=gridDOM.current.clientWidth
     const XNodeAmount=Math.floor(XaxisLength/nodeScale)
@@ -316,7 +378,7 @@ const Astar=()=>{
     const nodesDOM=document.querySelectorAll('.node')
     setIsAnimating(true)
     clearVisits()
-    const animations=algo===1 ? dijkstras() : Astar()
+    const animations=algo===1 ? dijkstras() : depthFirstSeacrh()
     let factor=factorGenerate()
     if(!normal) factor=0
     if(factor===0){
@@ -336,6 +398,11 @@ const Astar=()=>{
     },i)
   }
   }
+  const checkForMess=()=>{
+    const pathDOM=document.querySelectorAll('.path')
+    const visitsDOM=document.querySelectorAll('.visits')
+    return pathDOM.length+visitsDOM.length
+  }
   return (
     <main>
         <section className="optionsSection" id='pathFindingOptions'>
@@ -346,8 +413,14 @@ const Astar=()=>{
               }}
               onClick={()=>{
                 if(isAnimating) return
-                clearGrid()
+                const state=checkForMess()
+                if(!state){
+                  clearGrid()
+                }else{
+                  clearVisits()
+                }
               }}
+              onDoubleClick={clearGrid}
               >Clear board</button>
             </div>
             <div className='pathFindingOption'>
@@ -355,7 +428,9 @@ const Astar=()=>{
             <div className='pathFindingOption' id='speedOption'>
                 <p>{animationSpeed===1 ? 'very slow' : animationSpeed===2 ? 'slow' : animationSpeed===3 ? 'mid' :animationSpeed===4 ? 'fast' : 'no'} animating</p>
               <div id='speedRangeContainer'>
-                <AiOutlineMinus/>
+                <AiOutlineMinus
+                onClick={()=>{if (!isAnimating && animationSpeed>1) setAnimationSpeed(animationSpeed-1)}}
+                />
                 <input
                 type='range'
                 id='widthRange'
@@ -370,14 +445,16 @@ const Astar=()=>{
                   setAnimationSpeed(Number(e.target.value))
                 }}
                 />
-                <AiOutlinePlus/>
+                <AiOutlinePlus
+                onClick={()=>{if (!isAnimating && animationSpeed<5) setAnimationSpeed(animationSpeed+1)}}
+                />
               </div>
             </div>
             <div className='pathFindingOption' id='pathFindingAlgoritms'>
               <p>Algorithm:</p>
               <div>
                 <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>Dijkstra's</p>
-                <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>A star</p>
+                <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>Depth-first</p>
               </div>
             </div>
                 <div className='pathFindingOption'>
