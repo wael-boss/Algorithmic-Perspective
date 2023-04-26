@@ -10,6 +10,81 @@
     border-bottom: 1px solid transparent;
     cursor: pointer;
 }
+#mazeSelection{
+    background-color: var(--colorScale3);
+    border: none;
+    outline: none;
+    padding: 5px 20px;
+    position: relative;
+    z-index: 20;
+}
+#mazeSelection{
+    padding: 5px 50px 5px 20px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-S);
+}
+#mazeSelection::before{
+    content: '\25b2';
+    position: absolute;
+    right:10px ;
+    font-size:10px;
+    font-weight:900;
+    transition: rotate .2s ease-in-out;
+}
+#mazeSelection:is(:focus){
+    border-radius: var(--radius-S) var(--radius-S) 0 0;
+}
+#mazeSelection:is(:focus)::before{
+    rotate: 180deg;
+}
+#mazeSelection:is(:focus)>#mazeOptions{
+    display: flex;
+}
+#mazeOptions{
+    position: absolute;
+    display: flex;
+    top: 100%;
+    right: 0px;
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background-image: linear-gradient(180deg ,var(--colorScale3) ,var(--grayScale5));
+    border-radius: 0 0 var(--radius-S) var(--radius-S);
+    overflow: hidden;
+}
+#mazeOptions>p{
+    padding: 2px;
+    width: 100%;
+    border-bottom:1px solid var(--colorScale5);
+}
+#mazeOptions>p:is(:hover ,:focus){
+    background-color: var(--colorScale5);
+}
+#pathFindButtons{
+    display: flex;
+}
+#findPath{
+    border-radius: var(--radius-M) 0 0 var(--radius-M);
+}
+#onDeplaceBtn{
+    width: 20px;
+    padding: 0;
+    border-radius:0 var(--radius-M) var(--radius-M) 0;
+}
+#speedOption{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#speedRangeContainer{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+#speedRangeContainer svg{
+    font-size:15px;
+}
 #pathFindingSection{
     display: grid;
     padding: 0;
@@ -48,11 +123,11 @@
 }
 .visited::before{
     content: '';
-    background-color: #ff8a0c
+    background-color: #ff8400
 }
 .path::before{
     content: '';
-    background-color: #fd0
+    background-color: #ffdd00
 }
 @keyframes popIn {
     0%{

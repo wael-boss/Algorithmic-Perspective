@@ -148,7 +148,7 @@ section:is(.optionsSection){
   align-items: center;
   flex-wrap: wrap;
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 section:is(.optionsSection)::before{
 content: '';

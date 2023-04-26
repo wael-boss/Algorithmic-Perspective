@@ -1,10 +1,39 @@
 import { useEffect, useRef, useState } from 'react'
 import '../css/PathFindingVisualiser.css'
+import {AiOutlinePlus ,AiOutlineMinus} from 'react-icons/ai'
 const PathFindingVisualiser = () => {
+  const Yaxis=500
+  const nodeScale=20
+  const [isAnimating ,setIsAnimating]=useState(false)
+  const [dragedDestination,setDragedDestination]=useState({movingNode:null,newIndex:null})
+  const [destinationsPositions ,setDestinationsPositions]=useState({start:null,end:null})
+  const [algo ,setAlgo]=useState(1)
+  const [nodesJSX ,setNodesJSX]=useState([])
+  const [animateOnDmove ,setAnimateOnDmove]=useState(false)
+  const [animationSpeed ,setAnimationSpeed]=useState(4)
+  const [gridValues ,setGridValues]=useState({total:null,x:null,y:null})
+  const gridDOM=useRef()
+  const pathFind=useRef()
+  const factorGenerate=()=>{
+    let factor=0
+    switch(animationSpeed){
+      case 1: factor=100
+      break
+      case 2: factor=50
+      break
+      case 3: factor=25
+      break
+      case 4: factor=10
+      break
+      case 5: factor=0
+      break
+    }
+    return factor
+  }
   const maze=()=>{
     setIsAnimating(true)
     const nodesDOM=document.querySelectorAll('.node')
-    const factor=10
+    const factor=factorGenerate()
     let j=10
     for(let i=0;i<nodesDOM.length;i++){
       const node=nodesDOM[i]
@@ -19,25 +48,6 @@ const PathFindingVisualiser = () => {
       setIsAnimating(false)
     },j)
   }
-  const Yaxis=500
-  const nodeScale=20
-  const [isAnimating ,setIsAnimating]=useState(false)
-  const [dragedDestination,setDragedDestination]=useState({
-    movingNode:null,
-    newIndex:null
-  })
-  const [destinationsPositions ,setDestinationsPositions]=useState({
-    start:null,
-    end:null
-  })
-  const [algo ,setAlgo]=useState(1)
-  const [nodesJSX ,setNodesJSX]=useState([])
-  const [gridValues ,setGridValues]=useState({
-    total:null,
-    x:null,
-    y:null
-  })
-  const gridDOM=useRef()
   const dijkstrasLogic=(validNeighbors ,history)=>{
     validNeighbors.map(neighborIndex=>{
       // get the current neighbor history tab
@@ -54,6 +64,7 @@ const PathFindingVisualiser = () => {
   const dijkstras=()=>{
     const nodesDOM=document.querySelectorAll('.node')
     const history={}
+    const animation=[]
     const startIndex=destinationsPositions.start
     history[startIndex]={
       index:startIndex,
@@ -63,8 +74,6 @@ const PathFindingVisualiser = () => {
     const unvisitedNodes=[startIndex]
     const visitedNodes=[]
     let endNode=null
-    const factor=10
-    let j=0
     for(let i=0;i<unvisitedNodes.length && !endNode;i++){
       const currentNodeIndex=unvisitedNodes[i]
       const currentNodeDOM=nodesDOM[currentNodeIndex]
@@ -77,9 +86,7 @@ const PathFindingVisualiser = () => {
         // save it as a visited node
         visitedNodes.push(currentNodeIndex)
         if([...currentNodeDOM.classList].length<2){
-          setTimeout(()=>{
-            currentNodeDOM.classList.add('visited')
-          },j+=factor)
+            animation.push({index:currentNodeIndex,class:'visited'})
         }
         //push the current nodes's valid neighbors to the unvisited array
         const neighborNodes=JSON.parse(currentNodeDOM.dataset.location)
@@ -105,20 +112,20 @@ const PathFindingVisualiser = () => {
   }
   if(endNode===null){
     console.log('not possible')
+    return animation
   }else{
-  const animation=[]
   let lastVisitor=history[endNode].lastVisitor
+  const tempArr=[]
   while(lastVisitor!==startIndex){
-    animation.unshift(history[lastVisitor].index)
+    tempArr.unshift({index:history[lastVisitor].index,class:'path'})
     lastVisitor=history[lastVisitor].lastVisitor
   }
-  animation.map(frame=>{
-    setTimeout(()=>{
-      nodesDOM[frame].classList.add('path')
-    },j+=(factor*2))
-  })
+  return [...animation ,...tempArr]
 }
-}
+  }
+const Astar=()=>{
+
+  }
   const createGrid=()=>{
     const XaxisLength=gridDOM.current.clientWidth
     const XNodeAmount=Math.floor(XaxisLength/nodeScale)
@@ -147,8 +154,9 @@ const PathFindingVisualiser = () => {
   const handleDestinationsMove=(currNodeIndex ,DnodeDragged)=>{
     const nodesDOM=document.querySelectorAll('.node')
     const currentNodeDOM=nodesDOM[currNodeIndex]
-    if(![...currentNodeDOM.classList].includes('wall')){
+    if(![...currentNodeDOM.classList].includes('wall') && ![...currentNodeDOM.classList].includes('start') && ![...currentNodeDOM.classList].includes('end')){
       if(DnodeDragged==='start'){
+        if(currNodeIndex===destinationsPositions.start) return
         const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
         setDestinationsPositions(prev=>{
           return {
@@ -165,6 +173,7 @@ const PathFindingVisualiser = () => {
         prevNodeDOM.classList.remove('start')
         currentNodeDOM.classList=('node start')
       }else{
+        if(currNodeIndex===destinationsPositions.end) return
         const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
         setDestinationsPositions(prev=>{
           return {
@@ -188,7 +197,7 @@ const PathFindingVisualiser = () => {
     const nodesDOM=document.querySelectorAll('.node')
     const movingNode=nodesDOM[dragedDestination.movingNode]
     const targetNode=dragedDestination.newIndex
-    if(targetNode===null || !movingNode) return
+    if(targetNode===null || !movingNode || isAnimating) return
     const movingNodeClasses=movingNode.classList
     const DnodeDragged=[...movingNodeClasses].includes('start') ? 'start' : [...movingNodeClasses].includes('end') ? 'end' : ''
     if(DnodeDragged.length){
@@ -238,7 +247,6 @@ const PathFindingVisualiser = () => {
           }}
             data-location={JSON.stringify(location)}
             onClick={()=>{
-              console.log(i)
               setDragedDestination(prev=>{
                 return {
                   ...prev,
@@ -299,6 +307,35 @@ const PathFindingVisualiser = () => {
   useEffect(()=>{
     if(gridValues.total!==null) createNodes()
   },[gridValues])
+  useEffect(()=>{
+    if(animateOnDmove){
+      animationFunc(false)
+    }
+  },[destinationsPositions])
+  const animationFunc=(normal=true)=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    setIsAnimating(true)
+    clearVisits()
+    const animations=algo===1 ? dijkstras() : Astar()
+    let factor=factorGenerate()
+    if(!normal) factor=0
+    if(factor===0){
+      animations.map(frame=>{
+          nodesDOM[frame.index].classList.add(frame.class)
+      })
+      setIsAnimating(false)
+    }else{
+    let i=0
+    animations.map(frame=>{
+      setTimeout(()=>{
+        nodesDOM[frame.index].classList.add(frame.class)
+      },i+=factor)
+    })
+    setTimeout(()=>{
+      setIsAnimating(false)
+    },i)
+  }
+  }
   return (
     <main>
         <section className="optionsSection" id='pathFindingOptions'>
@@ -307,37 +344,86 @@ const PathFindingVisualiser = () => {
               style={{
                 background: isAnimating && '#a00000'
               }}
-              onClick={clearGrid}
-              >clear board</button>
+              onClick={()=>{
+                if(isAnimating) return
+                clearGrid()
+              }}
+              >Clear board</button>
             </div>
             <div className='pathFindingOption'>
-              <p onClick={maze}>Maze</p>
             </div>
-            <div className='pathFindingOption'>
-              <p onClick={()=>{
-                const index=120
-              const pathHistor=[]
-              pathHistor[120]={
-                dom:<div></div>,
-                lastVistedFrom:121,
-                distance:20
-              }
-              console.log(pathHistor)
-              }}  >Animation speed</p>
+            <div className='pathFindingOption' id='speedOption'>
+                <p>{animationSpeed===1 ? 'very slow' : animationSpeed===2 ? 'slow' : animationSpeed===3 ? 'mid' :animationSpeed===4 ? 'fast' : 'no'} animating</p>
+              <div id='speedRangeContainer'>
+                <AiOutlineMinus/>
+                <input
+                type='range'
+                id='widthRange'
+                min='1'
+                max='5'
+                value={animationSpeed}
+                style={{
+                  background: isAnimating && '#a00000'
+                }}
+                onChange={(e)=>{
+                  if(isAnimating) return
+                  setAnimationSpeed(Number(e.target.value))
+                }}
+                />
+                <AiOutlinePlus/>
+              </div>
             </div>
             <div className='pathFindingOption' id='pathFindingAlgoritms'>
               <p>Algorithm:</p>
               <div>
-                <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>dijkstra's</p>
+                <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>Dijkstra's</p>
                 <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>A star</p>
               </div>
             </div>
-            <div className='pathFindingOption'>
-              <button onClick={()=>{
-                clearVisits()
-                dijkstras()
+                <div className='pathFindingOption'>
+                  <button id='mazeSelection'>
+                    <label>Mazes</label>
+                    <div id='mazeOptions' onClick={()=>{
+                      pathFind.current.focus()
+                    }}>
+                      <p
+                      style={{
+                        background: isAnimating && '#a00000'
+                      }}
+                      onClick={maze}>random</p>
+                      <p
+                      style={{
+                        background: isAnimating && '#a00000'
+                      }}
+                      >film maze</p>
+                    </div>
+                  </button>
+                </div>
+            <div className='pathFindingOption' id='pathFindButtons'>
+              <button
+              id='findPath'
+              ref={pathFind}
+              style={{
+                background: isAnimating && '#a00000'
+              }}
+              onClick={()=>{
+                if(isAnimating) return
+                animationFunc()
               }}>Find path !</button>
+              <button
+              id='onDeplaceBtn'
+              style={{
+                background: isAnimating ? '#a00000' : animateOnDmove ? '#00ff00' : '#ff0000',
+              }}
+              onClick={()=>{
+                if(isAnimating) return
+                setAnimateOnDmove(!animateOnDmove)
+              }}
+              ></button>
             </div>
+        </section>
+        <section id='infoSection'>
+          
         </section>
         <section
         id='pathFindingSection'
