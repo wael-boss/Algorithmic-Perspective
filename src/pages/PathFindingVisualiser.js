@@ -11,7 +11,13 @@ const PathFindingVisualiser = () => {
   const [nodesJSX ,setNodesJSX]=useState([])
   const [animateOnDmove ,setAnimateOnDmove]=useState(false)
   const [animationSpeed ,setAnimationSpeed]=useState(4)
+  const [notFound ,setNotFound]=useState(false)
   const [gridValues ,setGridValues]=useState({total:null,x:null,y:null})
+  const [runProperties ,setRunProperties]=useState({
+    time:{s:null ,e:null},
+    visits:null,
+    paths:null,
+  })
   const gridDOM=useRef()
   const pathFind=useRef()
   const factorGenerate=()=>{
@@ -49,6 +55,9 @@ const PathFindingVisualiser = () => {
     },j)
   }
   // algos
+  const Astar=()=>{
+
+  }
   const neighborNodes=(index ,nodesDOM ,visitedNodes)=>{
     const currentNodeDOM=nodesDOM[index]
     const location=JSON.parse(currentNodeDOM.dataset.location)
@@ -87,12 +96,13 @@ const PathFindingVisualiser = () => {
     const unvisitedNodes=[startIndex]
     const visitedNodes=[]
     let endNode=null
-    for(let i=0;i<unvisitedNodes.length && !endNode;i++){
+    for(let i=0;i<unvisitedNodes.length && endNode===null;i++){
       const currentNodeIndex=unvisitedNodes[i]
       const currentNodeDOM=nodesDOM[currentNodeIndex]
       // if wall node or already visited do nothing
       if(!visitedNodes.includes(currentNodeIndex)){
         // if the current node is end node finish the loop
+        console.log(currentNodeDOM ,[...currentNodeDOM.classList].includes('end'))
         if([...currentNodeDOM.classList].includes('end')){
           endNode=currentNodeIndex
         }else{
@@ -102,17 +112,10 @@ const PathFindingVisualiser = () => {
             animation.push({index:currentNodeIndex,class:'visited'})
         }
         //push the current nodes's valid neighbors to the unvisited array
-        const neighborNodes=JSON.parse(currentNodeDOM.dataset.location)
-        const validNeighbors=[]
-        Object.values(neighborNodes).map(index=>{
-          // if null return
-          if(index===null) return
-          const neighborDOM=nodesDOM[index]
-          // if wall return
-          // if visited return
-          if(visitedNodes.includes(index) || [...neighborDOM.classList].includes('wall')) return
+        // const neighborNodes=JSON.parse(currentNodeDOM.dataset.location)
+        const validNeighbors=neighborNodes(currentNodeIndex ,nodesDOM ,visitedNodes)
+        validNeighbors.map(index=>{
           unvisitedNodes.push(index)
-          validNeighbors.push(index)
           history[index]={
             index:index,
             shortestPath:999999,
@@ -124,9 +127,10 @@ const PathFindingVisualiser = () => {
     }
   }
   if(endNode===null){
-    console.log('not possible')
+    setNotFound(true)
     return animation
   }else{
+  setNotFound(false)
   let lastVisitor=history[endNode].lastVisitor
   const tempArr=[]
   while(lastVisitor!==startIndex){
@@ -136,7 +140,7 @@ const PathFindingVisualiser = () => {
   return [...animation ,...tempArr]
 }
   }
-const depthFirstSeacrh=()=>{
+  const depthFirstSeacrh=()=>{
   const nodesDOM=document.querySelectorAll('.node')
   const startIndex=destinationsPositions.start
   const unvisitedNodes=[startIndex]
@@ -179,8 +183,9 @@ const depthFirstSeacrh=()=>{
     }
   }
   if(endIndex===null){
-    console.log('not possible')
+    setNotFound(true)
   }else{
+    setNotFound(false)
     stack.map(index=>{
       if(index!==startIndex) animation.push({index:index,class:'path'})
     })
@@ -374,13 +379,30 @@ const depthFirstSeacrh=()=>{
       animationFunc(false)
     }
   },[destinationsPositions])
-  const animationFunc=(normal=true)=>{
+  useEffect(()=>{
+    if(notFound){
+      setTimeout(()=>{
+      if(notFound){
+        setNotFound(false)
+      }
+    },2000)}
+  },[notFound])
+  const animationFunc=()=>{
     const nodesDOM=document.querySelectorAll('.node')
     setIsAnimating(true)
     clearVisits()
-    const animations=algo===1 ? dijkstras() : depthFirstSeacrh()
+    const startOfRun=Date.now()
+    const animations=algo===1 ? dijkstras() : algo===2 ? depthFirstSeacrh() : Astar()
+    const endOfRun=Date.now()
+    const visits=animations.filter(frame=>frame.class==='visited')
+    const paths=animations.filter(frame=>frame.class==='path')
+    setRunProperties({
+      time:{s:startOfRun ,e:endOfRun},
+      visits:visits.length,
+      paths:paths.length
+    })
     let factor=factorGenerate()
-    if(!normal) factor=0
+    // if(!normal) factor=0
     if(factor===0){
       animations.map(frame=>{
           nodesDOM[frame.index].classList.add(frame.class)
@@ -400,7 +422,7 @@ const depthFirstSeacrh=()=>{
   }
   const checkForMess=()=>{
     const pathDOM=document.querySelectorAll('.path')
-    const visitsDOM=document.querySelectorAll('.visits')
+    const visitsDOM=document.querySelectorAll('.visited')
     return pathDOM.length+visitsDOM.length
   }
   return (
@@ -420,7 +442,6 @@ const depthFirstSeacrh=()=>{
                   clearVisits()
                 }
               }}
-              onDoubleClick={clearGrid}
               >Clear board</button>
             </div>
             <div className='pathFindingOption'>
@@ -455,6 +476,7 @@ const depthFirstSeacrh=()=>{
               <div>
                 <p style={{ borderBottomColor: algo === 1 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(1)}>Dijkstra's</p>
                 <p style={{ borderBottomColor: algo === 2 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(2)}>Depth-first</p>
+                <p style={{ borderBottomColor: algo === 3 ? 'var(--colorScale2)' : '' }} onClick={() => setAlgo(3)}>A star</p>
               </div>
             </div>
                 <div className='pathFindingOption'>
@@ -500,7 +522,21 @@ const depthFirstSeacrh=()=>{
             </div>
         </section>
         <section id='infoSection'>
-          
+          <div>
+            {runProperties.visits===null ? <p>no visits yet.</p> : <p>visited <span style={{color:'#ff8400'}}>{runProperties.visits}</span> nodes.</p>}
+            {runProperties.paths===null ? <p>no no paths yet.</p> : <p><span style={{color:'#ffdd00'}}>{runProperties.paths}</span> path nodes.</p>}
+          </div>
+          <div>
+            <p>{animateOnDmove ? <span style={{color:'#0f0'}}>Instantly</span> : <span style={{color:'#f00'}}>Don't</span>} path find on (start/end) node deplacement.</p>
+            {
+            algo===1 ? <p>Dijkstra's algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p> :
+            algo===2 ? <p>Depth-first search algorithm <strong style={{color:'#f00'}}>does not guarantee</strong> shortest path.</p> :
+            <p>A star algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p>}
+          </div>
+          <div>
+            {runProperties.time.e!==null ? <p>found path in <span style={{color:'var(--colorScale5)'}}>{runProperties.time.e-runProperties.time.s}</span> ms.</p> : <p>no timer yet.</p>}
+            {notFound && <strong style={{color:'#f00'}}>end is not in reach.</strong>}
+          </div>
         </section>
         <section
         id='pathFindingSection'

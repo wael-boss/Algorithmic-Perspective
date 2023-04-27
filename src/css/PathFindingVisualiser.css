@@ -89,6 +89,21 @@
 #speedRangeContainer svg:is(:hover ,:active ,:focus){
     color: var(--colorScale3);
 }
+#infoSection{
+    display: flex;
+    justify-content: space-between;
+}
+#infoSection div{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+#infoSection div:nth-child(2){
+    align-items: center;
+}
+#infoSection div:nth-child(3){
+    justify-content: start;
+}
 #pathFindingSection{
     display: grid;
     padding: 0;
