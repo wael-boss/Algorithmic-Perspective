@@ -54,6 +54,51 @@ const PathFindingVisualiser = () => {
       setIsAnimating(false)
     },j)
   }
+  const recursiveDivision=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const nodesOnX=gridValues.x
+    const nodesOnY=gridValues.y
+    let x=[Math.floor(Math.random()*nodesOnX)]
+    let y=[(Math.floor(Math.random()*nodesOnY))*nodesOnX]
+    let xEnd=false
+    let yEnd=false
+    let intersection=null
+    while(xEnd===false){
+      if(![...nodesDOM[x[x.length-1]].classList].includes('start') && ![...nodesDOM[x[x.length-1]].classList].includes('end')){
+        nodesDOM[x[x.length-1]].classList='node wall'
+      }
+      const location=JSON.parse(nodesDOM[x[x.length-1]].dataset.location)
+      if(location.down===null){
+        xEnd=true
+      }else{
+        x.push(x[x.length-1]+nodesOnX)
+      }
+    }
+    while(yEnd===false){
+      if([...nodesDOM[y[y.length-1]].classList].includes('wall')){
+        intersection=y[y.length-1]
+      }
+      if(![...nodesDOM[y[y.length-1]].classList].includes('start') && ![...nodesDOM[y[y.length-1]].classList].includes('end')){
+        nodesDOM[y[y.length-1]].classList='node wall'
+      }
+      const location=JSON.parse(nodesDOM[y[y.length-1]].dataset.location)
+      if(location.right===null){
+        yEnd=true
+      }else{
+        y.push(y[y.length-1]+1)
+      }
+    }
+    const walls=[]
+    if(y.slice(0 ,y.indexOf(intersection)).length>0) walls.push(y.slice(0 ,y.indexOf(intersection)))
+    if(y.slice(y.indexOf(intersection)+1 ,y.length).length>0) walls.push(y.slice(y.indexOf(intersection)+1 ,y.length))
+    if(x.slice(0 ,x.indexOf(intersection)).length>0) walls.push(x.slice(0 ,x.indexOf(intersection)))
+    if(x.slice(x.indexOf(intersection)+1 ,x.length).length>0) walls.push(x.slice(x.indexOf(intersection)+1 ,x.length))
+    if(walls.length>3) walls.splice(Math.floor(Math.random()*walls.length) ,1)
+    walls.map(wall=>{
+      const Rnum=Math.floor(Math.random()*wall.length)
+      if(![...nodesDOM[wall[Rnum]].classList].includes('start') && ![...nodesDOM[wall[Rnum]].classList].includes('end')) nodesDOM[wall[Rnum]].classList='node'
+    })
+  }
   // algos
   const Astar=()=>{
 
@@ -379,15 +424,15 @@ const PathFindingVisualiser = () => {
       animationFunc(false)
     }
   },[destinationsPositions])
-  useEffect(()=>{
-    if(notFound){
-      setTimeout(()=>{
-      if(notFound){
-        setNotFound(false)
-      }
-    },2000)}
-  },[notFound])
-  const animationFunc=()=>{
+  // useEffect(()=>{
+  //   if(notFound){
+  //     setTimeout(()=>{
+  //     if(notFound){
+  //       setNotFound(false)
+  //     }
+  //   },2000)}
+  // },[notFound])
+  const animationFunc=(normal=true)=>{
     const nodesDOM=document.querySelectorAll('.node')
     setIsAnimating(true)
     clearVisits()
@@ -402,7 +447,7 @@ const PathFindingVisualiser = () => {
       paths:paths.length
     })
     let factor=factorGenerate()
-    // if(!normal) factor=0
+    if(!normal) factor=0
     if(factor===0){
       animations.map(frame=>{
           nodesDOM[frame.index].classList.add(frame.class)
@@ -494,7 +539,8 @@ const PathFindingVisualiser = () => {
                       style={{
                         background: isAnimating && '#a00000'
                       }}
-                      >film maze</p>
+                      onClick={recursiveDivision}
+                      >Recursive division</p>
                     </div>
                   </button>
                 </div>
@@ -519,6 +565,7 @@ const PathFindingVisualiser = () => {
                 setAnimateOnDmove(!animateOnDmove)
               }}
               ></button>
+            <button onClick={recursiveDivision}>f</button>
             </div>
         </section>
         <section id='infoSection'>
