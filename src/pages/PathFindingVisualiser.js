@@ -36,7 +36,7 @@ const PathFindingVisualiser = () => {
     }
     return factor
   }
-  const maze=()=>{
+  const randomMaze=()=>{
     setIsAnimating(true)
     const nodesDOM=document.querySelectorAll('.node')
     const factor=factorGenerate()
@@ -53,6 +53,10 @@ const PathFindingVisualiser = () => {
     setTimeout(()=>{
       setIsAnimating(false)
     },j)
+  }
+  const randomNum=(val)=>{
+    const num=Math.floor(Math.random()*val)
+    return num
   }
   const recursiveDivision=()=>{
     const nodesDOM=document.querySelectorAll('.node')
@@ -97,6 +101,49 @@ const PathFindingVisualiser = () => {
     walls.map(wall=>{
       const Rnum=Math.floor(Math.random()*wall.length)
       if(![...nodesDOM[wall[Rnum]].classList].includes('start') && ![...nodesDOM[wall[Rnum]].classList].includes('end')) nodesDOM[wall[Rnum]].classList='node'
+    })
+  }
+  // mazes
+  const spiralMaze=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const spiralDirections=['right','down','left','up']
+    const wallNodes=[]
+    let currNodeIndex=gridValues.x
+    let currNodeLocation=JSON.parse(nodesDOM[currNodeIndex].dataset.location)
+    let running=true
+    let direction='right'
+    while(running===true){
+      wallNodes.push(currNodeIndex)
+      // check if in 2 moves nothing 
+      const neighborInDirectionIndex=currNodeLocation[direction]
+      const neighborInDirectionDOM=nodesDOM[neighborInDirectionIndex]
+      let nextNextIndex=JSON.parse(neighborInDirectionDOM.dataset.location)[direction]
+      if(nextNextIndex===null || wallNodes.includes(nextNextIndex)){
+        // change direction
+        const currDirectionIndex=spiralDirections.indexOf(direction)
+        if(currDirectionIndex===spiralDirections.length-1){
+          direction=spiralDirections[0]
+        }else{
+          direction=spiralDirections[currDirectionIndex+1]
+        }
+        nextNextIndex=JSON.parse(nodesDOM[currNodeLocation[direction]].dataset.location)[direction]
+        if(nextNextIndex===null || wallNodes.includes(nextNextIndex)){
+          running=false
+        }
+      }else{
+      // keep going
+      currNodeIndex=neighborInDirectionIndex
+      currNodeLocation=JSON.parse(nodesDOM[currNodeIndex].dataset.location)}
+    }
+    let i=0
+    let factor=factorGenerate()
+    setTimeout(()=>{
+      setIsAnimating(false)
+    },factor*wallNodes.length)
+    wallNodes.map(index=>{
+      setTimeout(()=>{
+        if(index!==destinationsPositions.start && index!==destinationsPositions.end) nodesDOM[index].classList='node wall'
+      },i+=factor)
     })
   }
   // algos
@@ -147,7 +194,6 @@ const PathFindingVisualiser = () => {
       // if wall node or already visited do nothing
       if(!visitedNodes.includes(currentNodeIndex)){
         // if the current node is end node finish the loop
-        console.log(currentNodeDOM ,[...currentNodeDOM.classList].includes('end'))
         if([...currentNodeDOM.classList].includes('end')){
           endNode=currentNodeIndex
         }else{
@@ -534,13 +580,26 @@ const PathFindingVisualiser = () => {
                       style={{
                         background: isAnimating && '#a00000'
                       }}
-                      onClick={maze}>random</p>
+                      onClick={randomMaze}>random</p>
                       <p
                       style={{
                         background: isAnimating && '#a00000'
                       }}
-                      onClick={recursiveDivision}
+                      onClick={()=>{
+                        clearGrid()
+                        recursiveDivision()
+                      }}
                       >Recursive division</p>
+                      <p
+                      style={{
+                        background: isAnimating && '#a00000'
+                      }}
+                      onClick={()=>{
+                        setIsAnimating(true)
+                        clearGrid()
+                        spiralMaze()
+                      }}
+                      >spiral</p>
                     </div>
                   </button>
                 </div>
@@ -565,7 +624,6 @@ const PathFindingVisualiser = () => {
                 setAnimateOnDmove(!animateOnDmove)
               }}
               ></button>
-            <button onClick={recursiveDivision}>f</button>
             </div>
         </section>
         <section id='infoSection'>
@@ -581,7 +639,7 @@ const PathFindingVisualiser = () => {
             <p>A star algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p>}
           </div>
           <div>
-            {runProperties.time.e!==null ? <p>found path in <span style={{color:'var(--colorScale5)'}}>{runProperties.time.e-runProperties.time.s}</span> ms.</p> : <p>no timer yet.</p>}
+            {runProperties.time.e!==null ? <p>run time: <span style={{color:'var(--colorScale5)'}}>{runProperties.time.e-runProperties.time.s}</span> ms.</p> : <p>no timer yet.</p>}
             {notFound && <strong style={{color:'#f00'}}>end is not in reach.</strong>}
           </div>
         </section>
