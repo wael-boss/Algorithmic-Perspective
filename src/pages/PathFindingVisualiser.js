@@ -147,9 +147,6 @@ const PathFindingVisualiser = () => {
     })
   }
   // algos
-  const Astar=()=>{
-
-  }
   const neighborNodes=(index ,nodesDOM ,visitedNodes)=>{
     const currentNodeDOM=nodesDOM[index]
     const location=JSON.parse(currentNodeDOM.dataset.location)
@@ -161,6 +158,53 @@ const PathFindingVisualiser = () => {
       validNeighbors.push(index)
     })
     return validNeighbors
+  }
+  const distance=(curr ,end)=>{
+  const dx =curr.x-end.x
+  const dy =curr.y-end.y
+  return Math.sqrt(dx*dx + dy*dy)
+}
+const locatorFunc=(nodeIndx)=>{
+    const lines=Math.floor(nodeIndx/gridValues.x)
+    const xNode=nodeIndx-(lines*gridValues.x)
+    const yNode=lines*gridValues.x
+    return {
+      x:xNode,
+      y:yNode
+    }
+  }
+  const Astar=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const endLocators=locatorFunc(destinationsPositions.end)
+    const animation=[]
+    const unvisitedNodes=[destinationsPositions.start]
+    const visitedNodes=[]
+    let endNode=null
+    for(let i=0;i<unvisitedNodes.length && endNode===null;i++){
+      const currNodeIndx=unvisitedNodes[i]
+      const currNodeDOM=nodesDOM[currNodeIndx]
+      if([...currNodeDOM.classList].includes('end')){
+        endNode=currNodeIndx
+      }else{
+        visitedNodes.push(currNodeIndx)
+        if(currNodeIndx!==destinationsPositions.start) animation.push({index:currNodeIndx,class:'visited'})
+        const neighborIndexes=neighborNodes(currNodeIndx ,nodesDOM ,visitedNodes)
+        if(neighborIndexes.length>0){
+          let bestEstimate=9999
+          let bestNode=null
+          neighborIndexes.map(index=>{
+            const distanceEstimate=distance(locatorFunc(index),endLocators)
+            if(distanceEstimate<bestEstimate){
+              bestEstimate=distanceEstimate
+              bestNode=index
+            }
+          })
+          unvisitedNodes.push(bestNode)
+        }
+      }
+    }
+    console.log(endNode)
+    return animation
   }
   const dijkstrasLogic=(validNeighbors ,history)=>{
     validNeighbors.map(neighborIndex=>{
@@ -470,14 +514,6 @@ const PathFindingVisualiser = () => {
       animationFunc(false)
     }
   },[destinationsPositions])
-  // useEffect(()=>{
-  //   if(notFound){
-  //     setTimeout(()=>{
-  //     if(notFound){
-  //       setNotFound(false)
-  //     }
-  //   },2000)}
-  // },[notFound])
   const animationFunc=(normal=true)=>{
     const nodesDOM=document.querySelectorAll('.node')
     setIsAnimating(true)
