@@ -92,11 +92,13 @@
 #infoSection{
     display: flex;
     justify-content: space-between;
+    padding: 10px 0;
 }
 #infoSection div{
     display: flex;
     flex-direction: column;
     justify-content: center;
+    font-size: calc(var(--fontSize-M) - 5px);
 }
 #infoSection div:nth-child(2){
     align-items: center;

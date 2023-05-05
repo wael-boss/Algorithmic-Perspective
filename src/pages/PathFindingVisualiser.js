@@ -173,38 +173,91 @@ const locatorFunc=(nodeIndx)=>{
       y:yNode
     }
   }
-  const Astar=()=>{
-    const nodesDOM=document.querySelectorAll('.node')
+  const estimateCalc=(index)=>{
     const endLocators=locatorFunc(destinationsPositions.end)
-    const animation=[]
-    const unvisitedNodes=[destinationsPositions.start]
-    const visitedNodes=[]
-    let endNode=null
-    for(let i=0;i<unvisitedNodes.length && endNode===null;i++){
-      const currNodeIndx=unvisitedNodes[i]
-      const currNodeDOM=nodesDOM[currNodeIndx]
-      if([...currNodeDOM.classList].includes('end')){
-        endNode=currNodeIndx
-      }else{
-        visitedNodes.push(currNodeIndx)
-        if(currNodeIndx!==destinationsPositions.start) animation.push({index:currNodeIndx,class:'visited'})
-        const neighborIndexes=neighborNodes(currNodeIndx ,nodesDOM ,visitedNodes)
-        if(neighborIndexes.length>0){
-          let bestEstimate=9999
-          let bestNode=null
-          neighborIndexes.map(index=>{
-            const distanceEstimate=distance(locatorFunc(index),endLocators)
-            if(distanceEstimate<bestEstimate){
-              bestEstimate=distanceEstimate
-              bestNode=index
-            }
-          })
-          unvisitedNodes.push(bestNode)
+    return distance(locatorFunc(index),endLocators)
+  }
+  const Astar = () => {
+    const nodesDOM = document.querySelectorAll('.node')
+    const startIndex = destinationsPositions.start
+    const animation = []
+    const history = {}
+    const unvisitedNodes = [startIndex]
+    let holdList = []
+    history[startIndex] = {
+      node: startIndex,
+      visitedFrom: null,
+      path: 0,
+      estimate: estimateCalc(startIndex), // Assuming you have defined the heuristicEuclidean function
+    }
+    const visitedNodes = []
+    let endNode = null
+    while (unvisitedNodes.length > 0 && endNode === null) {
+      console.log(holdList.length)
+      // Find the unvisited node with the lowest estimated cost
+      let minIndex = 0
+      for (let i = 0; i < unvisitedNodes.length; i++) {
+        if (history[unvisitedNodes[i]].estimate < history[unvisitedNodes[minIndex]].estimate) {
+          minIndex = i
         }
       }
+      const currNodeIndx = unvisitedNodes[minIndex]
+      const currNodeDOM = nodesDOM[currNodeIndx]
+      if ([...currNodeDOM.classList].includes('end')) {
+        endNode = currNodeIndx
+      } else {
+        // Mark the current node as visited and add it to the animation list
+        visitedNodes.push(currNodeIndx)
+        if (currNodeIndx !== destinationsPositions.start) {
+          animation.push({ index: currNodeIndx, class: 'visited' })
+        }
+        // Find the neighbor nodes of the current node
+        const neighborIndexes = neighborNodes(currNodeIndx, nodesDOM, visitedNodes)
+        if (neighborIndexes.length > 0) {
+          neighborIndexes.forEach((neighbor) => {
+            const path = history[currNodeIndx].path + 1
+            const estimate = estimateCalc(neighbor) // Assuming you have defined the heuristicEuclidean function
+            if (history[neighbor] === undefined || path < history[neighbor].path) {
+              history[neighbor] = {
+                node: neighbor,
+                visitedFrom: currNodeIndx,
+                path: path,
+                estimate: estimate,
+              }
+            }
+            if (!unvisitedNodes.includes(neighbor)) {
+              unvisitedNodes.push(neighbor)
+            }
+          })
+        }
+        // Move the current node from the unvisited list to the hold list
+        unvisitedNodes.splice(minIndex, 1)
+        holdList.push(currNodeIndx)
+      }
+      if (unvisitedNodes.length === 0 && holdList.length > 0) {
+        // If there are no more unvisited nodes and the hold list is not empty, move the best node from the hold list to the unvisited list
+        let minIndex = 0
+        for (let i = 0; i < holdList.length; i++) {
+          if (history[holdList[i]].estimate < history[holdList[minIndex]].estimate) {
+            minIndex = i
+          }
+        }
+        unvisitedNodes.push(holdList.splice(minIndex, 1)[0])
+      }
     }
-    console.log(endNode)
-    return animation
+    const temp=[]
+    if (endNode !== null) {
+      // If the goal node is found, construct the path from the start node to the goal node
+      let i = endNode
+      while (i !== startIndex) {
+        const currDOM = nodesDOM[history[i].visitedFrom]
+        if(![...currDOM.classList].includes('end') && ![...currDOM.classList].includes('start')) temp.unshift({ index: history[i].visitedFrom, class: 'path' })
+        i = history[i].visitedFrom
+      }
+    }else{
+      setNotFound(true)
+    }
+    return [...animation ,...temp]
   }
   const dijkstrasLogic=(validNeighbors ,history)=>{
     validNeighbors.map(neighborIndex=>{
