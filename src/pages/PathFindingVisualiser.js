@@ -103,7 +103,95 @@ const PathFindingVisualiser = () => {
       if(![...nodesDOM[wall[Rnum]].classList].includes('start') && ![...nodesDOM[wall[Rnum]].classList].includes('end')) nodesDOM[wall[Rnum]].classList='node'
     })
   }
+  const neighborNodes=(index ,nodesDOM ,visitedNodes)=>{
+    const currentNodeDOM=nodesDOM[index]
+    const location=JSON.parse(currentNodeDOM.dataset.location)
+    const validNeighbors=[]
+    Object.values(location).map(index=>{
+      if(index===null) return
+      const neighborDOM=nodesDOM[index]
+      if(visitedNodes.includes(index) || [...neighborDOM.classList].includes('wall')) return
+      validNeighbors.push(index)
+    })
+    return validNeighbors
+  }
+  const validFarNeighbors=(index ,nodesDOM ,prohibitedNodes)=>{
+    const currNodeDOM=nodesDOM[index]
+    const neighbors=JSON.parse(currNodeDOM.dataset.location)
+    const obj={
+      up: neighbors.up!== null ? JSON.parse(nodesDOM[neighbors.up].dataset.location).up : null,
+      right: neighbors.right!== null ?  JSON.parse(nodesDOM[neighbors.right].dataset.location).right : null,
+      down: neighbors.down!== null ?  JSON.parse(nodesDOM[neighbors.down].dataset.location).down : null,
+      left: neighbors.left!== null ?  JSON.parse(nodesDOM[neighbors.left].dataset.location).left : null
+    }
+    const result=[]
+    Object.values(obj).map(val=>{
+      if(val===null || val===undefined) return 
+      if(prohibitedNodes.includes(val)) return
+      result.push(val)
+    })
+    return result
+  }
+  const connect=(index ,nodesDOM ,wallNodes)=>{
+    const nearNeighbors=neighborNodes(index ,nodesDOM ,[])
+    let nearestWall=null
+    nearNeighbors.map(i=>{
+      if(wallNodes.includes(i) && nearestWall===null){
+        nearestWall=i
+      }
+    })
+    if(nearestWall===null){
+    const directions=['up','right','down','left']
+    for(let i=0;i<directions.length && nearestWall===null;i++){
+      const direction=directions[i]
+      const closeNeighbor=JSON.parse(nodesDOM[index].dataset.location)[direction] 
+      if(closeNeighbor!==null && JSON.parse(nodesDOM[closeNeighbor].dataset.location)[direction]!==null){
+        const farNeighbor=JSON.parse(nodesDOM[closeNeighbor].dataset.location)[direction]
+        if(wallNodes.includes(farNeighbor)){
+          wallNodes.push(closeNeighbor)
+          nearestWall=farNeighbor
+        }
+      }
+    }
+    }
+  }
+  const chooseAndDelete=(waitList)=>{
+    const index=randomNum(waitList.length)
+    return waitList.splice(index ,1)[0]
+  }
   // mazes
+  const PrimAlgorithm=()=>{
+    const nodesDOM=document.querySelectorAll('.node')
+    const wallNodes=[randomNum(nodesDOM.length)]
+    const waitList=[...validFarNeighbors(wallNodes[0] ,nodesDOM ,wallNodes)]
+    while(waitList.length){
+      const wall=chooseAndDelete(waitList)
+      // connect to nearest wall
+      wallNodes.push(wall)
+      connect(wall ,nodesDOM ,wallNodes)
+      // push valid far neighbors
+      let temp=0
+      const newNodes=validFarNeighbors(wall ,nodesDOM ,[...wallNodes ,...waitList])
+      newNodes.map(index=>{
+        if(waitList.includes(index)){
+          console.log(true)
+        }else{
+          waitList.push(index)
+        }
+      })
+    }
+    let factor=10
+    let h=0
+    for(let i=0;i<nodesDOM.length;i++){
+      if(!wallNodes.includes(i)){
+        if(![...nodesDOM[i].classList].includes('start') && ![...nodesDOM[i].classList].includes('end')){
+          setTimeout(() => {
+            nodesDOM[i].classList='node wall'
+          }, h+=factor);
+        }
+      }
+    }
+  }
   const spiralMaze=()=>{
     const nodesDOM=document.querySelectorAll('.node')
     const spiralDirections=['right','down','left','up']
@@ -147,18 +235,6 @@ const PathFindingVisualiser = () => {
     })
   }
   // algos
-  const neighborNodes=(index ,nodesDOM ,visitedNodes)=>{
-    const currentNodeDOM=nodesDOM[index]
-    const location=JSON.parse(currentNodeDOM.dataset.location)
-    const validNeighbors=[]
-    Object.values(location).map(index=>{
-      if(index===null) return
-      const neighborDOM=nodesDOM[index]
-      if(visitedNodes.includes(index) || [...neighborDOM.classList].includes('wall')) return
-      validNeighbors.push(index)
-    })
-    return validNeighbors
-  }
   const distance=(curr ,end)=>{
   // const dx =curr.x-end.x
   // const dy =curr.y-end.y
@@ -246,6 +322,7 @@ const locatorFunc=(nodeIndx)=>{
     }
   }
     if(endNode!==null){
+      setNotFound(false)
       const temp=[]
       let i=endNode
       while(i!==startIndex){
@@ -253,6 +330,8 @@ const locatorFunc=(nodeIndx)=>{
         if(i!==startIndex) temp.unshift({index:i,class:'path'})
       }
       animation.push(...temp)
+    }else{
+      setNotFound(true)
     }
     return animation
   }
@@ -613,6 +692,11 @@ const locatorFunc=(nodeIndx)=>{
               onClick={()=>{
                 if(isAnimating) return
                 const state=checkForMess()
+                setRunProperties({
+                  time:{s:null ,e:null},
+                  visits:null,
+                  paths:null,
+                })
                 if(!state){
                   clearGrid()
                 }else{
@@ -686,6 +770,16 @@ const locatorFunc=(nodeIndx)=>{
                         spiralMaze()
                       }}
                       >spiral</p>
+                      <p
+                      style={{
+                        background: isAnimating && '#a00000'
+                      }}
+                      onClick={()=>{
+                        // setIsAnimating(true)
+                        clearGrid()
+                        PrimAlgorithm()
+                      }}
+                      >prim</p>
                     </div>
                   </button>
                 </div>
@@ -715,7 +809,7 @@ const locatorFunc=(nodeIndx)=>{
         <section id='infoSection'>
           <div>
             {runProperties.visits===null ? <p>no visits yet.</p> : <p>visited <span style={{color:'#ff8400'}}>{runProperties.visits}</span> nodes.</p>}
-            {runProperties.paths===null ? <p>no no paths yet.</p> : <p><span style={{color:'#ffdd00'}}>{runProperties.paths}</span> path nodes.</p>}
+            {runProperties.paths===null ? <p>no paths yet.</p> : <p><span style={{color:'#ffdd00'}}>{runProperties.paths}</span> path nodes.</p>}
           </div>
           <div>
             <p>{animateOnDmove ? <span style={{color:'#0f0'}}>Instantly</span> : <span style={{color:'#f00'}}>Don't</span>} path find on (start/end) node deplacement.</p>
