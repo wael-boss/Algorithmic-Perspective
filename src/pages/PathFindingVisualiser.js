@@ -9,9 +9,10 @@ const PathFindingVisualiser = () => {
   const [dragedDestination,setDragedDestination]=useState({movingNode:null,newIndex:null})
   const [destinationsPositions ,setDestinationsPositions]=useState({start:null,end:null})
   const [algo ,setAlgo]=useState(1)
+  const [moveSoon ,setMoveSoon]=useState([null])
   const [nodesJSX ,setNodesJSX]=useState([])
   const [animateOnDmove ,setAnimateOnDmove]=useState(false)
-  const [animationSpeed ,setAnimationSpeed]=useState(4)
+  const [animationSpeed ,setAnimationSpeed]=useState(3)
   const [notFound ,setNotFound]=useState(false)
   const [showStat ,setShowStat]=useState(true)
   const [gridValues ,setGridValues]=useState({total:null,x:null,y:null})
@@ -39,7 +40,6 @@ const PathFindingVisualiser = () => {
     return factor
   }
   const randomMaze=()=>{
-    setIsAnimating(true)
     const nodesDOM=document.querySelectorAll('.node')
     const factor=factorGenerate()
     let j=10
@@ -59,51 +59,6 @@ const PathFindingVisualiser = () => {
   const randomNum=(val)=>{
     const num=Math.floor(Math.random()*val)
     return num
-  }
-  const recursiveDivision=()=>{
-    const nodesDOM=document.querySelectorAll('.node')
-    const nodesOnX=gridValues.x
-    const nodesOnY=gridValues.y
-    let x=[Math.floor(Math.random()*nodesOnX)]
-    let y=[(Math.floor(Math.random()*nodesOnY))*nodesOnX]
-    let xEnd=false
-    let yEnd=false
-    let intersection=null
-    while(xEnd===false){
-      if(![...nodesDOM[x[x.length-1]].classList].includes('start') && ![...nodesDOM[x[x.length-1]].classList].includes('end')){
-        nodesDOM[x[x.length-1]].classList='node wall'
-      }
-      const location=JSON.parse(nodesDOM[x[x.length-1]].dataset.location)
-      if(location.down===null){
-        xEnd=true
-      }else{
-        x.push(x[x.length-1]+nodesOnX)
-      }
-    }
-    while(yEnd===false){
-      if([...nodesDOM[y[y.length-1]].classList].includes('wall')){
-        intersection=y[y.length-1]
-      }
-      if(![...nodesDOM[y[y.length-1]].classList].includes('start') && ![...nodesDOM[y[y.length-1]].classList].includes('end')){
-        nodesDOM[y[y.length-1]].classList='node wall'
-      }
-      const location=JSON.parse(nodesDOM[y[y.length-1]].dataset.location)
-      if(location.right===null){
-        yEnd=true
-      }else{
-        y.push(y[y.length-1]+1)
-      }
-    }
-    const walls=[]
-    if(y.slice(0 ,y.indexOf(intersection)).length>0) walls.push(y.slice(0 ,y.indexOf(intersection)))
-    if(y.slice(y.indexOf(intersection)+1 ,y.length).length>0) walls.push(y.slice(y.indexOf(intersection)+1 ,y.length))
-    if(x.slice(0 ,x.indexOf(intersection)).length>0) walls.push(x.slice(0 ,x.indexOf(intersection)))
-    if(x.slice(x.indexOf(intersection)+1 ,x.length).length>0) walls.push(x.slice(x.indexOf(intersection)+1 ,x.length))
-    if(walls.length>3) walls.splice(Math.floor(Math.random()*walls.length) ,1)
-    walls.map(wall=>{
-      const Rnum=Math.floor(Math.random()*wall.length)
-      if(![...nodesDOM[wall[Rnum]].classList].includes('start') && ![...nodesDOM[wall[Rnum]].classList].includes('end')) nodesDOM[wall[Rnum]].classList='node'
-    })
   }
   const neighborNodes=(index ,nodesDOM ,visitedNodes)=>{
     const currentNodeDOM=nodesDOM[index]
@@ -169,33 +124,39 @@ const PathFindingVisualiser = () => {
     while(waitList.length){
       const wall=chooseAndDelete(waitList)
       // connect to nearest wall
-      wallNodes.push(wall)
       connect(wall ,nodesDOM ,wallNodes)
+      wallNodes.push(wall)
       // push valid far neighbors
       let temp=0
       const newNodes=validFarNeighbors(wall ,nodesDOM ,[...wallNodes ,...waitList])
       newNodes.map(index=>{
-        if(waitList.includes(index)){
-          console.log(true)
-        }else{
+        if(!waitList.includes(index)){
           waitList.push(index)
         }
       })
     }
     let factor=factorGenerate()
     let h=0
-    setTimeout(() => {
-      setIsAnimating(false)
-    }, factor*wallNodes.length);
+    wallNodes.map(i=>{
+      if(![...nodesDOM[i].classList].includes('start') && ![...nodesDOM[i].classList].includes('end')){
+        setTimeout(() => {
+          nodesDOM[i].classList='node path'
+        }, h+=factor);
+      }
+    })
     for(let i=0;i<nodesDOM.length;i++){
-      if(!wallNodes.includes(i)){
-        if(![...nodesDOM[i].classList].includes('start') && ![...nodesDOM[i].classList].includes('end')){
+      if(![...nodesDOM[i].classList].includes('start') && ![...nodesDOM[i].classList].includes('end')){
+        if(!wallNodes.includes(i)){
           setTimeout(() => {
             nodesDOM[i].classList='node wall'
           }, h+=factor);
         }
       }
     }
+    setTimeout(()=>{
+      clearVisits()
+      setIsAnimating(false)
+    },h+=factor+500)
   }
   const spiralMaze=()=>{
     const nodesDOM=document.querySelectorAll('.node')
@@ -532,7 +493,18 @@ const locatorFunc=(nodeIndx)=>{
     const targetNode=dragedDestination.newIndex
     if(targetNode===null || !movingNode || isAnimating) return
     const movingNodeClasses=movingNode.classList
-    const DnodeDragged=[...movingNodeClasses].includes('start') ? 'start' : [...movingNodeClasses].includes('end') ? 'end' : ''
+    let DnodeDragged=[...movingNodeClasses].includes('start') ? 'start' : [...movingNodeClasses].includes('end') ? 'end' : ''
+    if(moveSoon[0]===destinationsPositions.start){
+      DnodeDragged='start'
+      setMoveSoon(prev=>{
+        return [prev[1]]
+      })
+    }else if(moveSoon[0]===destinationsPositions.end){
+      DnodeDragged='end'
+      setMoveSoon(prev=>{
+        return [prev[1]]
+      })
+    }
     if(DnodeDragged.length){
       // move destination node
       handleDestinationsMove(targetNode ,DnodeDragged)
@@ -579,10 +551,14 @@ const locatorFunc=(nodeIndx)=>{
             width:`${nodeScale}px`
           }}
             data-location={JSON.stringify(location)}
-            onClick={()=>{
+            onClick={(e)=>{
+              if(gridValues.x>=29) return
+              setMoveSoon(prev=>{
+                return [...prev ,i].splice(-2 ,2)
+              })
               setDragedDestination(prev=>{
                 return {
-                  ...prev,
+                  movingNode:i,
                   newIndex:i
                 }
               })
@@ -597,6 +573,7 @@ const locatorFunc=(nodeIndx)=>{
                 })
           }}
           onMouseDown={(e)=>{
+              if(gridValues.x<29) return
               e.preventDefault()
               setDragedDestination({
                 movingNode:i,
@@ -604,6 +581,7 @@ const locatorFunc=(nodeIndx)=>{
               })
           }}
           onMouseUp={()=>{
+              if(gridValues.x<29) return
               setDragedDestination({
                 movingNode:null,
                 newIndex:null
@@ -750,16 +728,11 @@ const locatorFunc=(nodeIndx)=>{
                       style={{
                         background: isAnimating && '#a00000'
                       }}
-                      onClick={randomMaze}>random</p>
-                      <p
-                      style={{
-                        background: isAnimating && '#a00000'
-                      }}
                       onClick={()=>{
+                        setIsAnimating(true)
                         clearGrid()
-                        recursiveDivision()
-                      }}
-                      >Recursive division</p>
+                        randomMaze()
+                      }}>random</p>
                       <p
                       style={{
                         background: isAnimating && '#a00000'
