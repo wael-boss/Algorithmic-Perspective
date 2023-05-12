@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import '../css/PathFindingVisualiser.css'
 import {AiOutlinePlus ,AiOutlineMinus} from 'react-icons/ai'
+import {BsFillClipboard2DataFill} from 'react-icons/bs'
 const PathFindingVisualiser = () => {
   const Yaxis=500
   const nodeScale=20
@@ -12,6 +13,7 @@ const PathFindingVisualiser = () => {
   const [animateOnDmove ,setAnimateOnDmove]=useState(false)
   const [animationSpeed ,setAnimationSpeed]=useState(4)
   const [notFound ,setNotFound]=useState(false)
+  const [showStat ,setShowStat]=useState(true)
   const [gridValues ,setGridValues]=useState({total:null,x:null,y:null})
   const [runProperties ,setRunProperties]=useState({
     time:{s:null ,e:null},
@@ -180,8 +182,11 @@ const PathFindingVisualiser = () => {
         }
       })
     }
-    let factor=10
+    let factor=factorGenerate()
     let h=0
+    setTimeout(() => {
+      setIsAnimating(false)
+    }, factor*wallNodes.length);
     for(let i=0;i<nodesDOM.length;i++){
       if(!wallNodes.includes(i)){
         if(![...nodesDOM[i].classList].includes('start') && ![...nodesDOM[i].classList].includes('end')){
@@ -236,9 +241,6 @@ const PathFindingVisualiser = () => {
   }
   // algos
   const distance=(curr ,end)=>{
-  // const dx =curr.x-end.x
-  // const dy =curr.y-end.y
-  // return Math.sqrt(dx*dx + dy*dy)
   let xDistance=end.x-curr.x
   if(xDistance<0){
     xDistance*=-1
@@ -488,7 +490,7 @@ const locatorFunc=(nodeIndx)=>{
     if(![...currentNodeDOM.classList].includes('wall') && ![...currentNodeDOM.classList].includes('start') && ![...currentNodeDOM.classList].includes('end')){
       if(DnodeDragged==='start'){
         if(currNodeIndex===destinationsPositions.start) return
-        const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
+        const prevNodeDOM=nodesDOM[destinationsPositions.start]
         setDestinationsPositions(prev=>{
           return {
             ...prev,
@@ -505,7 +507,7 @@ const locatorFunc=(nodeIndx)=>{
         currentNodeDOM.classList=('node start')
       }else{
         if(currNodeIndex===destinationsPositions.end) return
-        const prevNodeDOM=nodesDOM[dragedDestination.movingNode]
+        const prevNodeDOM=nodesDOM[destinationsPositions.end]
         setDestinationsPositions(prev=>{
           return {
             ...prev,
@@ -705,8 +707,6 @@ const locatorFunc=(nodeIndx)=>{
               }}
               >Clear board</button>
             </div>
-            <div className='pathFindingOption'>
-            </div>
             <div className='pathFindingOption' id='speedOption'>
                 <p>{animationSpeed===1 ? 'very slow' : animationSpeed===2 ? 'slow' : animationSpeed===3 ? 'mid' :animationSpeed===4 ? 'fast' : 'no'} animating</p>
               <div id='speedRangeContainer'>
@@ -775,7 +775,7 @@ const locatorFunc=(nodeIndx)=>{
                         background: isAnimating && '#a00000'
                       }}
                       onClick={()=>{
-                        // setIsAnimating(true)
+                        setIsAnimating(true)
                         clearGrid()
                         PrimAlgorithm()
                       }}
@@ -806,7 +806,10 @@ const locatorFunc=(nodeIndx)=>{
               ></button>
             </div>
         </section>
-        <section id='infoSection'>
+        <button id='statSwitch' onClick={()=>{
+          setShowStat(!showStat)
+        }}><BsFillClipboard2DataFill/></button>
+        <section style={{display:showStat ? 'flex' : 'none'}}  id='infoSection'>
           <div>
             {runProperties.visits===null ? <p>no visits yet.</p> : <p>visited <span style={{color:'#ff8400'}}>{runProperties.visits}</span> nodes.</p>}
             {runProperties.paths===null ? <p>no paths yet.</p> : <p><span style={{color:'#ffdd00'}}>{runProperties.paths}</span> path nodes.</p>}
@@ -814,9 +817,9 @@ const locatorFunc=(nodeIndx)=>{
           <div>
             <p>{animateOnDmove ? <span style={{color:'#0f0'}}>Instantly</span> : <span style={{color:'#f00'}}>Don't</span>} path find on (start/end) node deplacement.</p>
             {
-            algo===1 ? <p>Dijkstra's algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p> :
-            algo===2 ? <p>Depth-first search algorithm <strong style={{color:'#f00'}}>does not guarantee</strong> shortest path.</p> :
-            <p>A star algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p>}
+              algo===1 ? <p>Dijkstra's algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p> :
+              algo===2 ? <p>Depth-first search algorithm <strong style={{color:'#f00'}}>does not guarantee</strong> shortest path.</p> :
+              <p>A star algorithm <strong style={{color:'#0f0'}}>guarantees</strong> shortest path.</p>}
           </div>
           <div>
             {runProperties.time.e!==null ? <p>run time: <span style={{color:'var(--colorScale5)'}}>{runProperties.time.e-runProperties.time.s}</span> ms.</p> : <p>no timer yet.</p>}

@@ -1,6 +1,17 @@
+#resetDefault button{
+    font-size: var(--fontSize-S);
+}
 #pathFindingAlgoritms{
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
+}
+#mazeSelection label{
+    font-size: var(--fontSize-S);
+}
+#pathFindingAlgoritms p{
+    font-size: var(--fontSize-S);
+    text-align: center;
 }
 #pathFindingAlgoritms>div{
     display: flex;
@@ -57,6 +68,7 @@
     padding: 2px;
     width: 100%;
     border-bottom:1px solid var(--colorScale5);
+    font-size: var(--fontSize-S);
 }
 #mazeOptions>p:is(:hover ,:focus){
     background-color: var(--colorScale5);
@@ -66,20 +78,26 @@
 }
 #findPath{
     border-radius: var(--radius-M) 0 0 var(--radius-M);
+    font-size: var(--fontSize-S);
 }
 #onDeplaceBtn{
     width: 20px;
+    flex-grow: 0;
     padding: 0;
     border-radius:0 var(--radius-M) var(--radius-M) 0;
 }
 #speedOption{
     display: flex;
     flex-direction: column;
-    align-items: center;
+}
+#speedOption>p{
+    font-size: var(--fontSize-S);
+    text-align: center;
 }
 #speedRangeContainer{
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
 }
 #speedRangeContainer svg{
@@ -106,6 +124,9 @@
 #infoSection div:nth-child(3){
     justify-content: start;
 }
+#infoSection div:nth-child(3)>*{
+    text-align: end;
+}
 #pathFindingSection{
     display: grid;
     padding: 0;
@@ -128,7 +149,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    animation: popIn 1s cubic-bezier(.42,0,.38,1.6);
+    animation: popIn .5s cubic-bezier(.42,0,.38,1.6);
 }
 .node:is(.wall)::before{
     content: '';
@@ -147,11 +168,19 @@
     background-color: #ff8400
 }
 .path{
-    animation: popIn 1s cubic-bezier(.42,0,.38,1.6);
+    animation: popIn .5s cubic-bezier(.42,0,.38,1.6);
 }
 .path::before{
     content: '';
     background-color: #ffdd00
+}
+#statSwitch{
+    width: 100%;
+    display: none;
+    border-radius: 0;
+}
+#statSwitch>svg{
+    font-size: var(--fontSize-M);
 }
 @keyframes popIn {
     0%{
@@ -169,4 +198,52 @@
     100%{
         filter: hue-rotate(0);
     }
+}
+@media (width<992px){
+    #pathFindingOptions{
+        gap: 10px;
+    }
+    .pathFindingOption{
+        display: flex;
+        flex-grow: 1;
+    }
+    .pathFindingOption>*{
+        flex-grow: 1;
+    }
+    #widthRange{
+        flex-grow: 1;
+    }
+}
+@media (width<768px){
+    #infoSection div {
+        font-size: calc(var(--fontSize-M) - 4px);
+    }
+    #pathFindingAlgoritms>div {
+        justify-content: space-between;
+    }
+}
+@media (width<576px){
+    #infoSection {
+        flex-direction: column;
+        gap: 5px;
+    }
+    #infoSection >div{
+        align-items: center;
+        gap: 5px;
+        font-size:calc(var(--fontSize-S) + 1px);
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+    #infoSection div:nth-child(3) {
+        justify-content: center;
+    }
+    #infoSection >div >*{
+        text-align: center;
+    }
+    #statSwitch{
+        display: block;
+    }
+}
+@media (width<450px){
 }
